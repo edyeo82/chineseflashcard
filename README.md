@@ -45,6 +45,7 @@ Controls
   - **Swipe Right**: Go to previous card.
   - **Swipe Left**: Go to next card.
   - **Prev/Next Buttons**: Tap "Prev" or "Next" at the top.
-- **Flip Card (Character Mode Only)**:
-  - **Tap**: Tap the canvas (below buttons/dropdowns) to toggle between character and Pinyin.
-  - Note: Swipes navigate without flipping; flipping resets when navigating or changing modes.
+- **Reveal Pinyin (Character Mode Only)**:
+  - **Hold**: Press and hold the canvas (below buttons/dropdowns) to show Pinyin; release to show the character again.
+  - Note: Swipes navigate to the next/previous card without showing Pinyin; Pinyin display resets when navigating or changing modes.
+
