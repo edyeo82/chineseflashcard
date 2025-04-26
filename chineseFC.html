@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chinese Flashcards</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      background-color: #fff;
+    }
+    select, button {
+      margin: 5px;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Character data (replace with your full dataset)
+    const characterData = {
+      "Primary 1": {
+        "Lesson 1": ["衣", "一", "五", "雨", "我", "牙", "鱼"],
+        "Lesson 2": ["木", "八", "大", "马", "土", "的", "弟"],
+        "Lesson 3": ["女", "她", "爸", "他", "不", "妈", "你"],
+        // Add more lessons here
+      },
+      "Primary 2": {
+        "Lesson 1": ["高", "很", "发", "长", "左", "边", "右"],
+        "Lesson 2": ["中", "间", "面", "后", "同", "坐", "学"],
+        // Add more lessons here
+      },
+      // Add other levels here
+    };
+
+    let levelDropdown, lessonDropdown;
+    let selectedLevel = "Primary 1";
+    let selectedLesson = "All Lessons";
+    let currentDeck = [];
+    let currentCard = 0;
+
+    function setup() {
+      createCanvas(400, 400);
+      textAlign(CENTER, CENTER);
+
+      // Level dropdown
+      levelDropdown = createSelect();
+      levelDropdown.position(10, 10);
+      for (let level in characterData) {
+        levelDropdown.option(level);
+      }
+      levelDropdown.changed(levelChanged);
+      levelDropdown.value("Primary 1");
+
+      // Lesson dropdown
+      lessonDropdown = createSelect();
+      lessonDropdown.position(150, 10);
+      lessonDropdown.changed(lessonChanged);
+
+      // Navigation buttons
+      let prevButton = createButton('Previous');
+      prevButton.position(10, 50);
+      prevButton.mousePressed(goPrevious);
+
+      let nextButton = createButton('Next');
+      nextButton.position(60, 50);
+      nextButton.mousePressed(goNext);
+
+      // Initialize
+      updateLessonDropdown();
+      lessonDropdown.value("All Lessons");
+      updateDeck();
+    }
+
+    function draw() {
+      background(220);
+      textSize(24);
+      text(`Chinese Flashcards - ${selectedLevel} - ${selectedLesson}`, width / 2, 30);
+
+      if (currentDeck.length > 0) {
+        textSize(32);
+        text(currentDeck[currentCard], width / 2, height / 2);
+        textSize(16);
+        text(`Card ${currentCard + 1} of ${currentDeck.length}`, width / 2, height - 30);
+      } else {
+        text("No characters available", width / 2, height / 2);
+      }
+    }
+
+    function levelChanged() {
+      selectedLevel = levelDropdown.value();
+      updateLessonDropdown();
+      selectedLesson = "All Lessons";
+      lessonDropdown.value("All Lessons");
+      updateDeck();
+    }
+
+    function updateLessonDropdown() {
+      lessonDropdown.elt.innerHTML = ''; // Clear options
+      lessonDropdown.option("All Lessons");
+      for (let lesson in characterData[selectedLevel]) {
+        lessonDropdown.option(lesson);
+      }
+    }
+
+    function lessonChanged() {
+      selectedLesson = lessonDropdown.value();
+      updateDeck();
+    }
+
+    function updateDeck() {
+      if (selectedLesson === "All Lessons") {
+        let allCharacters = Object.values(characterData[selectedLevel])
+          .reduce((acc, val) => acc.concat(val), []);
+        currentDeck = shuffle(allCharacters);
+      } else {
+        currentDeck = [...characterData[selectedLevel][selectedLesson]]; // Copy array
+      }
+      currentCard = 0;
+    }
+
+    function shuffle(array) {
+      let arr = [...array]; // Copy array
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function goPrevious() {
+      if (currentDeck.length > 0) {
+        currentCard = (currentCard - 1 + currentDeck.length) % currentDeck.length;
+      }
+    }
+
+    function goNext() {
+      if (currentDeck.length > 0) {
+        currentCard = (currentCard + 1) % currentDeck.length;
+      }
+    }
+  </script>
+</body>
+</html>
