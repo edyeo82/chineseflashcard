@@ -1,6 +1,6 @@
 Chinese Flashcards
 =================
-I want to help my kids learn their chinese words, but could not find a simple flashcard app that is aligned with Singapore MOE.
+I would like to help my kids learn their chinese words, but could not find a simple flashcard app that is aligned with Singapore MOE.
 
 This is a simple web-based flashcard application to help you learn Chinese characters and their Pinyin pronunciations. It uses characters from Singapore MOE Higher Chinese. Chinese chars are parsed from https://www.moe.gov.sg/-/media/files/primary/2015characterlistprimaryhigherchinese.pdf
 
