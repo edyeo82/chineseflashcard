@@ -69,7 +69,8 @@
         }
         .back .char {
             font-size: 317px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 60px; /* Aligns character with front */
         }
         .back .pinyin {
             font-size: 106px;
@@ -157,17 +158,25 @@
                 height: 300px;
             }
             .front, .back .char, .card-content .char {
-                font-size: 158px;
+                font-size: 174px;
             }
             .back .pinyin, .card-content .pinyin {
                 font-size: 53px;
             }
-            button {
-                font-size: 18px;
-                padding: 5px;
+            .back .char {
+                margin-bottom: 15px;
+                margin-top: 45px; /* Aligns character with front */
+            }
+            .card-content .pinyin {
+                margin-top: 15px;
             }
             .card-number {
                 font-size: 14px;
+                bottom: 5px;
+            }
+            button {
+                font-size: 18px;
+                padding: 5px;
             }
             #help-modal {
                 font-size: 16px;
@@ -338,8 +347,8 @@
                             <div class="back">
                                 <div class="char">${card.char}</div>
                                 <div class="pinyin">${card.pinyin}</div>
+                                ${cardNumber}
                             </div>
-                            ${cardNumber}
                         </div>
                     `;
                     const cardElement = flashcard.querySelector('.card');
