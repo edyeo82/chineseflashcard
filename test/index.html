@@ -56,16 +56,23 @@
             backface-visibility: hidden;
             transition: transform 0.6s;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-family: 'Arimo', sans-serif;
             border: 1px solid #ccc;
-            font-size: 288px;
+            font-size: 317px;
         }
         .back {
             background: #f0f0f0;
             transform: rotateY(180deg);
-            font-size: 96px;
+        }
+        .back .char {
+            font-size: 317px;
+            margin-bottom: 10px;
+        }
+        .back .pinyin {
+            font-size: 106px;
         }
         .card.flipped .front {
             transform: rotateY(180deg);
@@ -85,12 +92,13 @@
             max-width: 90vw;
             max-height: 90vw;
             position: relative;
+            border: 1px solid #ccc;
         }
         .card-content .char {
-            font-size: 288px;
+            font-size: 317px;
         }
         .card-content .pinyin {
-            font-size: 96px;
+            font-size: 106px;
             margin-top: 20px;
         }
         .card-number {
@@ -138,21 +146,21 @@
                 font-size: 24px;
             }
             #dropdowns label, #dropdowns select {
-                font-size: 18px;
-                margin: 3px;
+                font-size: 16px;
+                margin: 2px;
             }
             select {
-                padding: 3px;
+                padding: 2px;
             }
             .card, .card-content {
                 width: 300px;
                 height: 300px;
             }
-            .front, .char {
-                font-size: 144px;
+            .front, .back .char, .card-content .char {
+                font-size: 158px;
             }
-            .back, .pinyin {
-                font-size: 48px;
+            .back .pinyin, .card-content .pinyin {
+                font-size: 53px;
             }
             button {
                 font-size: 18px;
@@ -198,9 +206,9 @@
         <select id="lesson">
             <!-- Populated dynamically -->
         </select>
-        <label>Type:</label>
+        <label>Mode:</label>
         <select id="type">
-            <option value="both">Both (Character + Pinyin)</option>
+            <option value="both">Both</option>
             <option value="char-only">Character Only</option>
         </select>
     </div>
@@ -253,14 +261,21 @@
                     localStorage.setItem(`child${childId}_type`, 'both');
                     localStorage.setItem(`child${childId}_cardIndex`, '0');
                 }
-                currentLevel = localStorage.getItem(`child${childId}_level`) || 'Primary 1A';
-                currentLesson = localStorage.getItem(`child${childId}_lesson`) || 'All Lessons';
-                currentType = localStorage.getItem(`child${childId}_type`) || 'both';
-                currentCardIndex = parseInt(localStorage.getItem(`child${childId}_cardIndex`)) || 0;
-                childSelect.value = currentChild;
-                levelSelect.value = currentLevel;
-                typeSelect.value = currentType;
-                console.log(`Initialized child ${childId}: level=${currentLevel}, lesson=${currentLesson}, type=${currentType}, index=${currentCardIndex}`);
+                if (childId === currentChild) {
+                    currentLevel = localStorage.getItem(`child${childId}_level`) || 'Primary 1A';
+                    currentLesson = localStorage.getItem(`child${childId}_lesson`) || 'All Lessons';
+                    currentType = localStorage.getItem(`child${childId}_type`) || 'both';
+                    currentCardIndex = parseInt(localStorage.getItem(`child${childId}_cardIndex`)) || 0;
+                    childSelect.value = currentChild;
+                    levelSelect.value = currentLevel;
+                    typeSelect.value = currentType;
+                    console.log(`Initialized child ${childId}: level=${currentLevel}, lesson=${currentLesson}, type=${currentType}, index=${currentCardIndex}`);
+                }
+            }
+
+            // Initialize all child profiles (1–5)
+            for (let i = 1; i <= 5; i++) {
+                initializeChildState(i.toString());
             }
 
             function populateLessons() {
@@ -320,7 +335,10 @@
                     flashcard.innerHTML = `
                         <div class="card">
                             <div class="front">${card.char}</div>
-                            <div class="back">${card.pinyin}</div>
+                            <div class="back">
+                                <div class="char">${card.char}</div>
+                                <div class="pinyin">${card.pinyin}</div>
+                            </div>
                             ${cardNumber}
                         </div>
                     `;
@@ -434,7 +452,6 @@
                 helpModal.style.display = 'none';
             });
 
-            initializeChildState(currentChild);
             populateLessons();
             loadWords();
         });
