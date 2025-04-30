@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="screen-orientation" content="portrait">
     <title>Chinese Flashcards</title>
     <link href="https://fonts.googleapis.com/css2?family=Arimo&display=swap" rel="stylesheet">
     <style>
@@ -16,6 +17,23 @@
             padding: 0;
             min-height: 100vh;
             box-sizing: border-box;
+        }
+        @media (orientation: landscape) {
+            body::before {
+                content: "Please rotate your device to portrait mode.";
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                text-align: center;
+                z-index: 1000;
+            }
         }
         h1 {
             font-size: 36px;
@@ -42,12 +60,12 @@
         .card {
             position: relative;
             width: 400px;
-            height: 400px;
+            height: 600px;
             perspective: 1000px;
             margin: 20px auto;
             touch-action: none;
             max-width: 90vw;
-            max-height: 90vw;
+            max-height: 90vh;
         }
         .front, .back {
             position: absolute;
@@ -60,7 +78,7 @@
         }
         .front .char, .back .char {
             position: absolute;
-            top: 50%;
+            top: 33%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 317px;
@@ -71,7 +89,7 @@
         }
         .back .pinyin {
             position: absolute;
-            top: 75%;
+            top: 66%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 106px;
@@ -93,15 +111,15 @@
         .card-content {
             position: relative;
             width: 400px;
-            height: 400px;
+            height: 600px;
             margin: 20px auto;
             max-width: 90vw;
-            max-height: 90vw;
+            max-height: 90vh;
             border: 1px solid #ccc;
         }
         .card-content .char {
             position: absolute;
-            top: 50%;
+            top: 33%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 317px;
@@ -109,14 +127,14 @@
         }
         .card-content .pinyin {
             position: absolute;
-            top: 75%;
+            top: 66%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 106px;
             font-family: 'Arimo', sans-serif;
         }
         #flashcard {
-            margin-bottom: 70px;
+            margin-bottom: 80px;
         }
         #controls {
             display: flex;
@@ -160,18 +178,21 @@
             }
             .card, .card-content {
                 width: 300px;
-                height: 300px;
+                height: 450px;
             }
             .front .char, .back .char, .card-content .char {
                 font-size: 174px;
             }
             .back .pinyin, .card-content .pinyin {
                 font-size: 50px;
-                top: 70%;
+                top: 66%;
             }
             .card-number {
                 font-size: 14px;
                 bottom: 5px;
+            }
+            #flashcard {
+                margin-bottom: 60px;
             }
             button {
                 font-size: 18px;
