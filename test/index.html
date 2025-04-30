@@ -13,7 +13,7 @@
             height: 400px;
             perspective: 1000px;
             margin: 20px auto;
-            touch-action: none; /* Prevent default touch scrolling */
+            touch-action: none;
         }
         .front, .back {
             position: absolute;
@@ -29,12 +29,12 @@
         }
         .front {
             background: #fff;
-            font-size: 300px; /* 3x original for characters */
+            font-size: 300px;
         }
         .back {
             background: #f0f0f0;
             transform: rotateY(180deg);
-            font-size: 100px; /* Smaller for Pinyin */
+            font-size: 100px;
         }
         .card.flipped .front {
             transform: rotateY(180deg);
@@ -53,10 +53,10 @@
             margin: 20px auto;
         }
         .card-content .char {
-            font-size: 300px; /* 3x original for characters */
+            font-size: 300px;
         }
         .card-content .pinyin {
-            font-size: 100px; /* Smaller for Pinyin */
+            font-size: 100px;
         }
         body {
             text-align: center;
@@ -133,7 +133,6 @@
             let touchStartX = 0;
             let touchEndX = 0;
 
-            // Initialize child state
             function initializeChildState(childId) {
                 if (!localStorage.getItem(`child${childId}_level`)) {
                     localStorage.setItem(`child${childId}_level`, 'Primary 1A');
@@ -141,46 +140,56 @@
                     localStorage.setItem(`child${childId}_type`, 'both');
                     localStorage.setItem(`child${childId}_cardIndex`, '0');
                 }
-                currentLevel = localStorage.getItem(`child${childId}_level`);
-                currentLesson = localStorage.getItem(`child${childId}_lesson`);
-                currentType = localStorage.getItem(`child${childId}_type`);
+                currentLevel = localStorage.getItem(`child${childId}_level`) || 'Primary 1A';
+                currentLesson = localStorage.getItem(`child${childId}_lesson`) || 'All Lessons';
+                currentType = localStorage.getItem(`child${childId}_type`) || 'both';
                 currentCardIndex = parseInt(localStorage.getItem(`child${childId}_cardIndex`)) || 0;
                 childSelect.value = currentChild;
                 levelSelect.value = currentLevel;
                 typeSelect.value = currentType;
+                console.log(`Initialized child ${childId}: level=${currentLevel}, lesson=${currentLesson}, type=${currentType}, index=${currentCardIndex}`);
             }
-
-            initializeChildState(currentChild);
 
             function populateLessons() {
                 lessonSelect.innerHTML = '<option value="All Lessons">All Lessons</option>';
-                const lessons = flashcardData[currentLevel];
-                for (let lesson in lessons) {
-                    lessonSelect.innerHTML += `<option value="${lesson}">${lesson}</option>`;
+                console.log(`Populating lessons for level: ${currentLevel}`);
+                if (flashcardData[currentLevel]) {
+                    for (let lesson in flashcardData[currentLevel]) {
+                        lessonSelect.innerHTML += `<option value="${lesson}">${lesson}</option>`;
+                    }
+                    lessonSelect.value = currentLesson;
+                    console.log(`Lessons populated: ${Object.keys(flashcardData[currentLevel]).join(', ')}`);
+                } else {
+                    console.error(`No lessons found for level ${currentLevel}`);
                 }
-                lessonSelect.value = currentLesson;
             }
 
             function loadWords() {
+                console.log(`Loading words for level=${currentLevel}, lesson=${currentLesson}`);
                 if (currentLesson === 'All Lessons') {
                     words = [];
-                    for (let lesson in flashcardData[currentLevel]) {
-                        words = words.concat(flashcardData[currentLevel][lesson]);
+                    if (flashcardData[currentLevel]) {
+                        for (let lesson in flashcardData[currentLevel]) {
+                            words = words.concat(flashcardData[currentLevel][lesson]);
+                        }
                     }
                 } else {
-                    words = flashcardData[currentLevel][currentLesson] || [];
+                    words = flashcardData[currentLevel] && flashcardData[currentLevel][currentLesson] ? flashcardData[currentLevel][currentLesson] : [];
                 }
+                console.log(`Loaded ${words.length} words`);
                 if (currentCardIndex >= words.length) currentCardIndex = 0;
                 if (currentCardIndex < 0) currentCardIndex = 0;
                 displayCard();
             }
 
             function displayCard() {
-                if (words.length === 0) {
+                if (words.length === 0 || !words[currentCardIndex]) {
                     flashcard.innerHTML = '<p>No cards available</p>';
+                    console.error('No cards to display');
                     return;
                 }
                 const card = words[currentCardIndex];
+                console.log(`Displaying card: char=${card.char}, pinyin=${card.pinyin}`);
                 if (currentType === 'both') {
                     flashcard.innerHTML = `
                         <div class="card-content">
@@ -197,7 +206,6 @@
                     `;
                     const cardElement = flashcard.querySelector('.card');
                     cardElement.addEventListener('click', flipCard);
-                    // Swipe detection
                     cardElement.addEventListener('touchstart', e => {
                         touchStartX = e.changedTouches[0].screenX;
                     });
@@ -208,14 +216,13 @@
                 }
             }
 
-            function flip tweeted
             function flipCard() {
                 const card = document.querySelector('.card');
                 if (card) card.classList.toggle('flipped');
             }
 
             function handleSwipe() {
-                const swipeThreshold = 50; // Minimum swipe distance
+                const swipeThreshold = 50;
                 const swipeDistance = touchEndX - touchStartX;
                 if (swipeDistance > swipeThreshold && currentCardIndex > 0) {
                     currentCardIndex--;
@@ -277,7 +284,6 @@
                 }
             });
 
-            // Arrow key navigation
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'ArrowLeft' && currentCardIndex > 0) {
                     currentCardIndex--;
@@ -290,7 +296,6 @@
                 }
             });
 
-            // Spacebar flip with keyup reset
             let isSpacePressed = false;
             document.addEventListener('keydown', function(e) {
                 if (e.code === 'Space' && currentType === 'char-only' && !isSpacePressed) {
