@@ -27,17 +27,7 @@ https://edyeo82.github.io/chineseflashcard/hcl-words/index.html
 
 Each child has separate progress saved in the browser using localStorage.
 
-The app now also remembers the last selected child and level. The status line will show either:
-
-```text
-progress saved on this device
-```
-
-or:
-
-```text
-progress NOT saved: browser storage is blocked/private
-```
+The app also remembers the last selected child and level. The status line shows whether progress is being saved on the device.
 
 Progress is saved on the current device/browser only. It is not synced across phones, tablets or browsers.
 
@@ -60,19 +50,10 @@ When a card is marked as **known**, it is removed from the active swipe/practice
 
 Open **Known words for selected child** to see words already marked as known. If a word was marked as known by mistake, use **Unknown / practise again** to move it back into the active practice deck.
 
-## Mobile behaviour
+## Duplicate handling
 
-The page reduces common accidental double-tap zoom behaviour on mobile so taps and swipes should feel more like a flashcard app.
-
-## Underlined characters
-
-Characters are underlined only when they appear in the same selected Primary level in the original character list.
-
-For example:
-
-- Primary 3 words underline characters found in Primary 3A / Primary 3B.
-- Primary 4 words underline characters found in Primary 4A / Primary 4B.
+The app removes duplicate word cards by Chinese text, so the same word should only appear once in the active deck.
 
 ## Source note
 
-The character reference is taken from the original app's `../index.html` `flashcardData`. The word bank is a starter vocabulary layer. It is not yet a complete official textbook vocabulary list. To improve coverage, add actual school spelling lists and textbook lesson vocabulary over time.
+The word bank is a starter vocabulary layer. It is not yet a complete official textbook vocabulary list. To improve coverage, add actual school spelling lists and textbook lesson vocabulary over time.

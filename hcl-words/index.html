@@ -2,40 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Higher Chinese Word Bank</title>
   <style>
     :root { --bg:#f7f7fb; --card:#fff; --ink:#222; --muted:#666; --line:#ddd; --accent:#3657d8; }
     * { box-sizing: border-box; }
-    html { touch-action: manipulation; }
-    body { margin: 0; font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); }
     header { padding: 18px 14px 10px; text-align: center; }
     h1 { margin: 0 0 6px; font-size: clamp(24px, 5vw, 38px); }
     .subtitle { color: var(--muted); font-size: 14px; max-width: 780px; margin: 0 auto; line-height: 1.45; }
     .wrap { width: min(980px, 96vw); margin: 0 auto 30px; }
     .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.04); }
-    .controls { display: grid; grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 10px; align-items: end; }
+    .controls { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; align-items: end; }
     label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 4px; }
-    select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; }
+    select, input { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; }
     .stats { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .card { position: relative; margin: 16px auto 10px; min-height: 360px; width: min(620px, 94vw); background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 28px 20px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; touch-action: pan-y; -webkit-tap-highlight-color: transparent; transition: transform .24s ease, opacity .24s ease; }
-    .card.swipe-right { transform: translateX(115%) rotate(8deg); opacity: 0; }
-    .card.swipe-left { transform: translateX(-115%) rotate(-8deg); opacity: 0; }
-    .swipeFeedback { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) scale(.94); opacity: 0; z-index: 5; padding: 14px 18px; border-radius: 18px; font-size: clamp(24px, 6vw, 42px); font-weight: 700; white-space: nowrap; pointer-events: none; box-shadow: 0 8px 22px rgba(0,0,0,.15); transition: opacity .12s ease, transform .12s ease; }
-    .swipeFeedback.show { opacity: .96; transform: translate(-50%, -50%) scale(1); }
-    .swipeFeedback.known { background: #eaf8ed; border: 2px solid #7ac98a; color: #17642b; }
-    .swipeFeedback.again { background: #fff0f0; border: 2px solid #e59696; color: #8a2727; }
-    .wordStage { min-height: 140px; display: flex; align-items: center; justify-content: center; width: 100%; }
-    .answerSlot { min-height: 145px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; }
+    .card { margin: 16px auto 10px; min-height: 360px; width: min(620px, 94vw); background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 20px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; }
     .badge { display: inline-block; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; margin-bottom: 16px; }
     .frontText { font-size: clamp(58px, 16vw, 130px); line-height: 1.05; font-weight: 700; }
     .wordText { font-size: clamp(48px, 12vw, 96px); line-height: 1.08; font-weight: 700; }
-    .refChar { text-decoration: underline; text-decoration-thickness: 0.08em; text-underline-offset: 0.12em; }
     .pinyin { margin-top: 16px; font-size: clamp(24px, 5vw, 44px); color: var(--accent); }
     .meaning { margin-top: 12px; font-size: clamp(18px, 4vw, 28px); }
     .example { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: clamp(17px, 3.5vw, 24px); line-height: 1.45; color: #333; }
     .nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 14px 0; }
-    button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 15px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 15px; cursor: pointer; }
     button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
     button.good { background: #eaf8ed; }
     button.bad { background: #fff0f0; }
@@ -46,13 +36,13 @@
     details { margin-top: 16px; }
     summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
     .hint { text-align: center; color: var(--muted); font-size: 13px; margin-top: -4px; }
-    .miniBtn { margin-top: 8px; padding: 6px 10px; font-size: 13px; border-radius: 10px; }
     @media (max-width: 760px) { .controls { grid-template-columns: 1fr 1fr; } .controls .wide { grid-column: 1 / -1; } .card { min-height: 330px; } }
   </style>
 </head>
 <body>
   <header>
     <h1>Higher Chinese Word Bank</h1>
+    <p class="subtitle">A separate companion app for your existing character flashcards. It reuses the original app's character data where possible, then adds word, phrase and sentence-level practice.</p>
   </header>
 
   <main class="wrap">
@@ -60,6 +50,9 @@
       <div class="controls">
         <div><label>Child</label><select id="child"><option>Child 1</option><option>Child 2</option><option>Child 3</option><option>Child 4</option><option>Child 5</option></select></div>
         <div><label>Level</label><select id="level"></select></div>
+        <div><label>Mode</label><select id="mode"><option value="words">Words / 词语</option><option value="characters">Characters / 字</option><option value="sentences">Sentences / 句子</option><option value="mixed">Mixed review</option></select></div>
+        <div><label>Filter</label><select id="tag"><option value="all">All</option><option value="daily">Daily life</option><option value="school">School</option><option value="family">Family</option><option value="emotion">Emotion</option><option value="compo">Composition</option><option value="oral">Oral</option><option value="reading">Reading</option><option value="values">Values</option><option value="nature">Nature</option></select></div>
+        <div class="wide"><label>Search</label><input id="search" placeholder="Search Chinese / pinyin / English" /></div>
       </div>
       <div class="stats" id="stats"></div>
     </section>
@@ -73,7 +66,7 @@
       <button id="again" class="bad">Practise again & Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
-    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this. Swipe left = I need to revise this again. Known cards disappear from practice.</div>
+    <div class="hint">Swipe right = I know this. Swipe left = practise again. Both move to the next card. After the last card, it returns to the start.</div>
 
     <section class="panel">
       <details>
@@ -84,7 +77,7 @@
         <summary>Current list</summary>
         <div class="list" id="list"></div>
       </details>
-      <p class="note"><b>Source note:</b> This words-only app attempts to read your original <code>../index.html</code> flashcardData as a reference character list. Characters in each word are underlined only if they appear in the same Primary level in the original character list. For example, Primary 3 words underline Primary 3A/3B source characters only, not every character from P1-P6. The word bank is a starter syllabus-aligned layer, not an official complete MOE textbook vocabulary list yet. Add school spelling lists / textbook words as you collect them.</p>
+      <p class="note"><b>Source note:</b> This word bank is a starter syllabus-aligned layer, not an official complete MOE textbook vocabulary list yet. Add school spelling lists / textbook words as you collect them.</p>
     </section>
   </main>
 
@@ -167,71 +160,21 @@ const STARTER_WORDS = [
   {level:'Primary 6', type:'word', text:'可靠', pinyin:'kě kào', meaning:'reliable', tag:'reading', example:'阅读新闻时，要找可靠的资料。'},
   {level:'Primary 6', type:'word', text:'面对', pinyin:'miàn duì', meaning:'face / confront', tag:'compo', example:'面对挑战，我们要保持冷静。'},
   {level:'Primary 6', type:'word', text:'挑战', pinyin:'tiǎo zhàn', meaning:'challenge', tag:'compo', example:'这次比赛是一个很大的挑战。'},
+
+  {level:'Composition', type:'sentence', text:'突然，一阵刺耳的声音传来。', pinyin:'tū rán, yī zhèn cì ěr de shēng yīn chuán lái.', meaning:'Suddenly, a sharp sound was heard.', tag:'compo', example:'Use for story opening or turning point.'},
+  {level:'Composition', type:'sentence', text:'我心里七上八下，不知道该怎么办。', pinyin:'wǒ xīn lǐ qī shàng bā xià, bù zhī dào gāi zěn me bàn.', meaning:'I felt very uneasy and did not know what to do.', tag:'compo', example:'Use for nervousness.'},
+  {level:'Composition', type:'sentence', text:'经过这件事，我明白了诚实的重要。', pinyin:'jīng guò zhè jiàn shì, wǒ míng bai le chéng shí de zhòng yào.', meaning:'After this incident, I understood the importance of honesty.', tag:'compo', example:'Useful ending sentence.'},
+  {level:'Composition', type:'sentence', text:'我暗暗下定决心，以后一定要更加努力。', pinyin:'wǒ àn àn xià dìng jué xīn, yǐ hòu yí dìng yào gèng jiā nǔ lì.', meaning:'I secretly made up my mind to work harder in future.', tag:'compo', example:'Useful reflection sentence.'},
+  {level:'Oral', type:'sentence', text:'我认为我们应该多为别人着想。', pinyin:'wǒ rèn wéi wǒ men yīng gāi duō wèi bié rén zhuó xiǎng.', meaning:'I think we should be more considerate of others.', tag:'oral', example:'Good for opinion questions.'},
+  {level:'Oral', type:'sentence', text:'这能提醒我们注意安全。', pinyin:'zhè néng tí xǐng wǒ men zhù yì ān quán.', meaning:'This can remind us to pay attention to safety.', tag:'oral', example:'Good for picture discussion.'}
 ];
 
 let characterCards = [];
-let allCards = [];
 let cards = [];
 let index = 0;
 let revealed = false;
 
 const $ = (id) => document.getElementById(id);
-
-const STORAGE_CHILD_KEY = 'hclWords:selectedChild';
-const STORAGE_LEVEL_KEY = 'hclWords:selectedLevel';
-let storageOk = true;
-
-function testStorage() {
-  try {
-    const key = 'hclWords:storageTest';
-    window.localStorage.setItem(key, '1');
-    window.localStorage.removeItem(key);
-    storageOk = true;
-  } catch (e) {
-    storageOk = false;
-  }
-}
-function safeGet(key) {
-  try { return window.localStorage.getItem(key); }
-  catch (e) { storageOk = false; return null; }
-}
-function safeSet(key, value) {
-  try { window.localStorage.setItem(key, value); storageOk = true; }
-  catch (e) { storageOk = false; }
-}
-function saveSelections() {
-  safeSet(STORAGE_CHILD_KEY, $('child').value);
-  safeSet(STORAGE_LEVEL_KEY, $('level').value);
-}
-function restoreSelections() {
-  const savedChild = safeGet(STORAGE_CHILD_KEY);
-  const savedLevel = safeGet(STORAGE_LEVEL_KEY);
-  if (savedChild && Array.from($('child').options).some(o => o.value === savedChild || o.text === savedChild)) $('child').value = savedChild;
-  if (savedLevel && Array.from($('level').options).some(o => o.value === savedLevel || o.text === savedLevel)) $('level').value = savedLevel;
-}
-function progressKeyFor(child, card) {
-  return `hclWords:${child}:${card.type}:${card.level}:${card.text}`;
-}
-
-function htmlEscape(value) {
-  return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
-}
-function referenceCharSet(level) {
-  const normalized = normalizeLevel(level);
-  if (!normalized || normalized === 'All') return new Set();
-  return new Set(
-    characterCards
-      .filter(c => normalizeLevel(c.level) === normalized)
-      .map(c => c.text)
-  );
-}
-function renderUnderlinedWord(text, level) {
-  const ref = referenceCharSet(level);
-  return Array.from(String(text || '')).map(ch => {
-    const safe = htmlEscape(ch);
-    return ref.has(ch) ? `<span class="refChar">${safe}</span>` : safe;
-  }).join('');
-}
 
 async function loadCharactersFromOriginalApp() {
   try {
@@ -260,7 +203,8 @@ async function loadCharactersFromOriginalApp() {
 
 function levelsForMode() {
   const s = new Set();
-  STARTER_WORDS.filter(x => x.type === 'word').forEach(x => s.add(x.level));
+  STARTER_WORDS.forEach(x => s.add(x.level));
+  characterCards.forEach(x => s.add(x.level.replace(/A|B/g,'').trim()));
   return ['All', ...Array.from(s).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}))];
 }
 
@@ -271,140 +215,97 @@ function populateLevels() {
 
 function normalizeLevel(x) { return (x || '').replace(/A|B/g,'').trim(); }
 
-function buildCards(preferredIndex = 0) {
-  const level = $('level').value;
-  const pool = STARTER_WORDS.filter(x => x.type === 'word');
-
-  allCards = pool.filter(x => {
-    const levelOk = level === 'All' || x.level === level || normalizeLevel(x.level) === level;
-    return levelOk;
+function uniqueWordsByText(items) {
+  const seen = new Set();
+  return items.filter(item => {
+    const key = String(item.text || '').trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
+}
 
-  // Active swipe deck excludes cards already marked as known for the selected child.
-  cards = allCards.filter(x => safeGet(progressKey(x)) !== 'known');
-  index = Math.min(Math.max(preferredIndex, 0), Math.max(cards.length - 1, 0));
+
+function buildCards() {
+  const mode = $('mode').value;
+  const level = $('level').value;
+  const tag = $('tag').value;
+  const q = $('search').value.trim().toLowerCase();
+  let pool = [];
+  if (mode === 'characters') pool = characterCards;
+  else if (mode === 'sentences') pool = STARTER_WORDS.filter(x => x.type === 'sentence');
+  else if (mode === 'mixed') pool = [...characterCards, ...STARTER_WORDS];
+  else pool = STARTER_WORDS.filter(x => x.type === 'word');
+
+  cards = pool.filter(x => {
+    const levelOk = level === 'All' || x.level === level || normalizeLevel(x.level) === level;
+    const tagOk = tag === 'all' || x.tag === tag || (mode === 'characters' && tag === 'all');
+    const hay = `${x.text} ${x.pinyin || ''} ${x.meaning || ''} ${x.example || ''}`.toLowerCase();
+    const qOk = !q || hay.includes(q);
+    return levelOk && tagOk && qOk;
+  });
+  index = Math.min(index, Math.max(cards.length - 1, 0));
   revealed = false;
   render();
 }
 
-function progressKey(card) { return progressKeyFor($('child').value, card); }
-function mark(v, moveNext = false) {
-  if (!cards.length) return;
-  const card = cards[index];
-  safeSet(progressKey(card), v);
-  if (v === 'known') {
-    // Remove known card from the active deck and keep position on the next available card.
-    buildCards(index);
-    return;
-  }
-  if (moveNext) { next(1); }
-  else { renderList(); renderKnownList(); renderStats(); render(); }
-}
-function knownCount() { return allCards.filter(c => safeGet(progressKey(c)) === 'known').length; }
+function progressKey(card) { return `hclWords:${$('child').value}:${card.type}:${card.level}:${card.text}`; }
+function mark(v, moveNext = false) { if (!cards.length) return; localStorage.setItem(progressKey(cards[index]), v); if (moveNext) { next(1); } else { renderList(); renderKnownList(); renderStats(); render(); } }
+function knownCount() { return cards.filter(c => localStorage.getItem(progressKey(c)) === 'known').length; }
 
 function renderStats() {
   const originalStatus = characterCards.length ? `${characterCards.length} original character cards loaded` : 'Original character list not loaded yet';
-  const saveStatus = storageOk ? 'progress saved on this device' : 'progress NOT saved: browser storage is blocked/private';
-  $('stats').textContent = `${cards.length} cards left to practise | ${knownCount()} known for ${$('child').value} | ${saveStatus} | ${originalStatus} | starter word cards: ${STARTER_WORDS.filter(x => x.type === 'word').length}`;
+  $('stats').textContent = `${cards.length} cards shown | ${knownCount()} known for ${$('child').value} | ${originalStatus} | starter word/phrase cards: ${STARTER_WORDS.length}`;
 }
 
 function render() {
   renderStats();
   const card = $('card');
   if (!cards.length) {
-    card.innerHTML = '<div class="meaning">All cards in this deck are marked as known.<br><br>Open Known words below if you need to move any card back to practise again.</div>';
-    $('list').innerHTML = '<div class="item">No active practice cards. Known cards are hidden from the swipe deck.</div>';
-    renderKnownList();
+    card.innerHTML = '<div class="meaning">No cards found. Try All level / All filter.</div>';
+    $('list').innerHTML = '';
+    $('knownList').innerHTML = '';
     return;
   }
   const c = cards[index];
-  const known = safeGet(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
+  const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
+  const bigClass = c.type === 'character' ? 'frontText' : 'wordText';
   card.innerHTML = `
-    <div id="swipeFeedback" class="swipeFeedback"></div>
-    <span class="badge">${index + 1} / ${cards.length} · ${c.level} · word · ${known}</span>
-    <div class="wordStage"><div class="wordText">${renderUnderlinedWord(c.text, c.level)}</div></div>
-    <div class="answerSlot">
-      ${revealed ? `<div class="pinyin">${c.pinyin || ''}</div><div class="meaning">${c.meaning || ''}</div><div class="example">${c.example || ''}</div>` : ''}
-    </div>
+    <span class="badge">${index + 1} / ${cards.length} · ${c.level}${c.lesson ? ' · ' + c.lesson : ''} · ${c.type} · ${known}</span>
+    <div class="${bigClass}">${c.text}</div>
+    ${revealed ? `<div class="pinyin">${c.pinyin || ''}</div><div class="meaning">${c.meaning || ''}</div><div class="example">${c.example || ''}</div>` : '<div class="meaning">Tap Reveal / Space</div>'}
   `;
   renderList();
 }
 
 function renderList() {
   $('list').innerHTML = cards.slice(0, 80).map((c) => {
-    const known = safeGet(progressKey(c)) === 'known' ? '✓' : '';
-    return `<div class="item"><b>${renderUnderlinedWord(c.text, c.level)}</b> ${known}<br><small>${htmlEscape(c.pinyin || '')}</small><br><small>${htmlEscape(c.meaning || '')}</small></div>`;
+    const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓' : '';
+    return `<div class="item"><b>${c.text}</b> ${known}<br><small>${c.pinyin || ''}</small><br><small>${c.meaning || ''}</small></div>`;
   }).join('') + (cards.length > 80 ? `<div class="item">+ ${cards.length - 80} more cards</div>` : '');
   renderKnownList();
 }
 
 function renderKnownList() {
-  const known = allCards.filter(c => safeGet(progressKey(c)) === 'known');
-  $('knownList').innerHTML = known.length ? known.map((c, i) => `
-    <div class="item">
-      <b>${renderUnderlinedWord(c.text, c.level)}</b> ✓<br>
-      <small>${htmlEscape(c.pinyin || '')}</small><br>
-      <small>${htmlEscape(c.meaning || '')}</small><br>
-      <button class="miniBtn bad unknownBtn" data-known-index="${i}">Unknown / practise again</button>
-    </div>`).join('') : '<div class="item">No known cards yet for this child.</div>';
-  window.__knownCardsForButtons = known;
-}
-
-function makeUnknown(card) {
-  if (!card) return;
-  safeSet(progressKey(card), 'again');
-  buildCards(index);
+  const known = cards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
+  $('knownList').innerHTML = known.length ? known.map(c => `<div class="item"><b>${c.text}</b> ✓<br><small>${c.pinyin || ''}</small><br><small>${c.meaning || ''}</small></div>`).join('') : '<div class="item">No known cards yet for this child/filter.</div>';
 }
 
 function next(delta) { if (!cards.length) return; index = (index + delta + cards.length) % cards.length; revealed = false; render(); }
 function shuffle() { for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; } index = 0; revealed = false; render(); }
-function animateDecision(value) {
-  if (!cards.length) return;
-  const cardEl = $('card');
-  const feedback = $('swipeFeedback');
-  const isKnown = value === 'known';
-  if (feedback) {
-    feedback.textContent = isKnown ? 'I know this' : 'I need to revise this again';
-    feedback.className = `swipeFeedback ${isKnown ? 'known' : 'again'} show`;
-  }
-  cardEl.classList.remove('swipe-right', 'swipe-left');
-  void cardEl.offsetWidth;
-  cardEl.classList.add(isKnown ? 'swipe-right' : 'swipe-left');
-  setTimeout(() => {
-    mark(value, true);
-    cardEl.classList.remove('swipe-right', 'swipe-left');
-  }, 260);
-}
 
 $('prev').onclick = () => next(-1);
 $('next').onclick = () => next(1);
 $('flip').onclick = () => { revealed = !revealed; render(); };
-$('card').onclick = (e) => {
-  if (suppressNextClick) { e.preventDefault(); return; }
-  if (!cards.length) return;
-  const rect = $('card').getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  if (x < rect.width / 3) next(-1);
-  else if (x > rect.width * 2 / 3) next(1);
-  else { revealed = !revealed; render(); }
-};
-$('know').onclick = () => animateDecision('known');
-$('again').onclick = () => animateDecision('again');
+$('card').onclick = () => { revealed = !revealed; render(); };
+$('know').onclick = () => mark('known', true);
+$('again').onclick = () => mark('again', true);
 $('shuffle').onclick = shuffle;
-
-$('knownList').addEventListener('click', e => {
-  const btn = e.target.closest('.unknownBtn');
-  if (!btn) return;
-  const idx = Number(btn.dataset.knownIndex);
-  makeUnknown((window.__knownCardsForButtons || [])[idx]);
-});
-$('child').addEventListener('input', () => { saveSelections(); buildCards(0); });
-$('level').addEventListener('input', () => { saveSelections(); buildCards(0); });
-document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') animateDecision('known'); if (e.key === 'ArrowLeft') animateDecision('again'); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
+['child','level','mode','tag','search'].forEach(id => $(id).addEventListener('input', buildCards));
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') mark('known', true); if (e.key === 'ArrowLeft') mark('again', true); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
 
 let touchStartX = 0;
 let touchStartY = 0;
-let suppressNextClick = false;
 $('card').addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
   touchStartY = e.changedTouches[0].screenY;
@@ -413,21 +314,12 @@ $('card').addEventListener('touchend', e => {
   const dx = e.changedTouches[0].screenX - touchStartX;
   const dy = e.changedTouches[0].screenY - touchStartY;
   if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.2) {
-    suppressNextClick = true;
-    if (dx > 0) animateDecision('known');
-    else animateDecision('again');
-    setTimeout(() => { suppressNextClick = false; }, 250);
+    if (dx > 0) mark('known', true);
+    else mark('again', true);
   }
 }, { passive: true });
 
-let lastTouchEnd = 0;
-document.addEventListener('touchend', e => {
-  const now = Date.now();
-  if (now - lastTouchEnd <= 300) e.preventDefault();
-  lastTouchEnd = now;
-}, { passive: false });
-
-(async function init(){ testStorage(); await loadCharactersFromOriginalApp(); populateLevels(); restoreSelections(); buildCards(); saveSelections(); })();
+(async function init(){ await loadCharactersFromOriginalApp(); populateLevels(); buildCards(); })();
 </script>
 </body>
 </html>
