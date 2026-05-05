@@ -1,19 +1,22 @@
 # Higher Chinese Word Bank
 
-A words-only web app for practising Higher Chinese words and phrases, with pinyin, English meanings and example sentences.
+A companion practice app for the main Chinese flashcard site.
 
-## UI refresh in this version
+## Current behaviour
 
-This version makes the action area easier to use:
+- Loads the original character cards directly from the main app.
+- Keeps the same Level and Lesson grouping as the main app.
+- Adds selected helper words, phrases and sentences only after all their Chinese characters have already been introduced.
+- Saves known-card progress separately for each child on the current browser/device.
 
-- Previous / Reveal / Next are grouped together in one clear control.
-- Reveal changes to **Hide** after the answer is shown.
-- **Know this & remove** is the main green action button.
-- Shuffle is shown as a smaller secondary button.
-- Card side arrows are still available for quick tapping.
-- Swipe right = **Know**
-- Swipe left = **Don't know**
+## Example
 
-## Progress
+Primary 1A Lesson 1 includes the original characters such as 衣、一、五、雨、我、牙、鱼. Helper phrases that use characters from later lessons are not shown yet. For example, 我的牙 waits until 的 has been introduced.
 
-Each child has separate progress saved in the browser on the current device. Known words are removed from the active practice deck. Use **Unknown / practise again** to restore a word if it was marked known by mistake.
+## Controls
+
+- Tap centre of card: reveal / hide pinyin and meaning.
+- Tap left/right side or arrows: previous / next.
+- Swipe right: know and remove from active practice.
+- Swipe left: don't know and move on.
+- Use Known cards to restore any card marked known by mistake.
