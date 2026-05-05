@@ -5,27 +5,30 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Helper Coverage Audit</title>
 <style>
-body{font-family:Arial,"Noto Sans SC","Microsoft YaHei",sans-serif;background:#f7f7fb;color:#202126;margin:0;padding:24px}main{max-width:980px;margin:0 auto}.panel{background:#fff;border:1px solid #dfe1e8;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.06)}h1{margin:0 0 8px;font-size:30px}.muted{color:#656b78}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.stat{background:#fafafa;border:1px solid #dfe1e8;border-radius:14px;padding:12px}.stat b{display:block;font-size:28px}button{border:0;background:#3159df;color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;margin:6px 6px 6px 0}button.secondary{background:#fff;color:#202126;border:1px solid #dfe1e8}.chunk{border:1px solid #dfe1e8;border-radius:14px;padding:12px;margin:12px 0;background:#fff}textarea{width:100%;min-height:110px;border:1px solid #dfe1e8;border-radius:12px;padding:10px;font-family:Consolas,monospace;font-size:14px}.ok{color:#17642b;font-weight:700}.bad{color:#9b1c1c;font-weight:700}.status{font-weight:700}</style>
+body{font-family:Arial,"Noto Sans SC","Microsoft YaHei",sans-serif;background:#f7f7fb;color:#202126;margin:0;padding:24px}main{max-width:980px;margin:0 auto}.panel{background:#fff;border:1px solid #dfe1e8;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.06)}h1{margin:0 0 8px;font-size:30px}.muted{color:#656b78}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.stat{background:#fafafa;border:1px solid #dfe1e8;border-radius:14px;padding:12px}.stat b{display:block;font-size:28px}button{border:0;background:#3159df;color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;margin:6px 6px 6px 0}button.secondary{background:#fff;color:#202126;border:1px solid #dfe1e8}.chunk{border:1px solid #dfe1e8;border-radius:14px;padding:12px;margin:12px 0;background:#fff}textarea{width:100%;min-height:110px;border:1px solid #dfe1e8;border-radius:12px;padding:10px;font-family:Consolas,monospace;font-size:14px}.ok{color:#17642b;font-weight:700}.bad{color:#9b1c1c;font-weight:700}.warn{color:#9a5b00;font-weight:700}.status{font-weight:700}</style>
 </head>
 <body>
 <main>
   <h1>Helper Coverage Audit</h1>
-  <p class="muted">This page checks the actual flashcard source against the helper phrase files. It splits missing characters into chunks of 200 so they can be copied without browser-console truncation.</p>
+  <p class="muted">This page checks helper phrase coverage and metadata coverage. It splits missing items into chunks of 200 so they can be copied without browser-console truncation.</p>
   <section class="panel">
     <div id="status" class="status">Loading audit...</div>
     <div id="stats" class="stats"></div>
     <div id="actions"></div>
   </section>
   <section id="chunks" class="panel"></section>
+  <section id="metadataChunks" class="panel"></section>
 </main>
 <script>
 const DATA_URL='https://raw.githubusercontent.com/edyeo82/chineseflashcard/f8373730fbbb589cc50efa19cd54b736fdf697f6/index.html';
 const HELPER_URLS=['hcl-words/helpers.json','hcl-words/helpers-extra.json','hcl-words/helpers-coverage.json'];
 const $=id=>document.getElementById(id);
 function chineseChars(s){return Array.from(String(s).matchAll(/[\u3400-\u9FFF]/g)).map(m=>m[0]);}
-function q(arr){return '['+arr.map(ch=>`'${ch}'`).join(', ')+']';}
+function q(arr){return '['+arr.map(ch=>`'${String(ch).replace(/'/g,"\\'")}'`).join(', ')+']';}
+function jq(arr){return JSON.stringify(arr,null,2);}
 async function copyText(text,btn){await navigator.clipboard.writeText(text);const old=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=old,900);}
 async function loadJson(url){const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error(`${url}: ${res.status}`);return res.json();}
+function chunkify(arr,size=200){const chunks=[];for(let i=0;i<arr.length;i+=size)chunks.push(arr.slice(i,i+size));return chunks;}
 async function run(){
   const html=await fetch(DATA_URL,{cache:'no-store'}).then(r=>r.text());
   const marker='const flashcardData = ';
@@ -40,27 +43,36 @@ async function run(){
   let helpers=[];
   for(const url of HELPER_URLS){
     const arr=await loadJson(url);
-    helpers=helpers.concat(arr);
+    helpers=helpers.concat(arr.map(x=>({file:url,phrase:String((x&&x[0])||''),pinyin:String((x&&x[1])||''),meaning:String((x&&x[2])||'')})));
   }
-  const helperPhrases=[...new Set(helpers.map(x=>String((x&&x[0])||'')).filter(Boolean))];
+  const helperPhrases=[...new Set(helpers.map(x=>x.phrase).filter(Boolean))];
   const covered=new Set(helperPhrases.flatMap(chineseChars));
   const missing=sourceChars.filter(ch=>!covered.has(ch));
-  window.__helperAudit={sourceCharacters:sourceChars.length,helperPhrases:helperPhrases.length,helperCovered:covered.size,missing};
-  $('status').innerHTML=missing.length?`<span class="bad">Missing helpers: ${missing.length}</span>`:`<span class="ok">100% covered. missing: []</span>`;
+  const missingPinyin=helpers.filter(x=>x.phrase&&!x.pinyin.trim()).map(x=>x.phrase);
+  const missingMeaning=helpers.filter(x=>x.phrase&&!x.meaning.trim()).map(x=>x.phrase);
+  const missingBoth=helpers.filter(x=>x.phrase&&(!x.pinyin.trim()||!x.meaning.trim())).map(x=>[x.phrase,x.pinyin,x.meaning]);
+  window.__helperAudit={sourceCharacters:sourceChars.length,helperPhrases:helperPhrases.length,helperCovered:covered.size,missing,missingPinyin,missingMeaning,missingBoth};
+  const phraseStatus=missing.length?`<span class="bad">Missing helper phrases: ${missing.length}</span>`:`<span class="ok">Phrase coverage: 100%. missing: []</span>`;
+  const metaStatus=missingBoth.length?`<span class="warn">Missing metadata entries: ${missingBoth.length}</span>`:`<span class="ok">Metadata coverage: 100%.</span>`;
+  $('status').innerHTML=phraseStatus+'<br>'+metaStatus;
   $('stats').innerHTML=`
     <div class="stat"><b>${sourceChars.length}</b><span>source characters</span></div>
     <div class="stat"><b>${helperPhrases.length}</b><span>helper phrases loaded</span></div>
     <div class="stat"><b>${covered.size}</b><span>unique helper characters</span></div>
-    <div class="stat"><b>${missing.length}</b><span>missing source characters</span></div>`;
-  $('actions').innerHTML=`<button id="copyAll">Copy all missing</button><button id="copyJson" class="secondary">Copy JSON.stringify(missing)</button><button id="copyHelperPrompt" class="secondary">Copy helper-generation prompt</button>`;
+    <div class="stat"><b>${missing.length}</b><span>missing source characters</span></div>
+    <div class="stat"><b>${missingPinyin.length}</b><span>helpers missing pinyin</span></div>
+    <div class="stat"><b>${missingMeaning.length}</b><span>helpers missing English</span></div>`;
+  $('actions').innerHTML=`<button id="copyAll">Copy all missing characters</button><button id="copyJson" class="secondary">Copy JSON.stringify(missing)</button><button id="copyMeta" class="secondary">Copy all missing metadata phrases</button><button id="copyMetaPrompt" class="secondary">Copy metadata-generation prompt</button>`;
   $('copyAll').onclick=e=>copyText(q(missing),e.target);
   $('copyJson').onclick=e=>copyText(JSON.stringify(missing),e.target);
-  $('copyHelperPrompt').onclick=e=>copyText('Generate one natural Singapore primary-school-level Chinese helper phrase for each of these characters. Output JSON entries only in the format ["phrase", "", ""]. Do not use single-character fallback. Do not use adjacent-character guessing. Missing characters: '+q(missing),e.target);
-  const chunkSize=200;
-  const chunks=[];
-  for(let i=0;i<missing.length;i+=chunkSize)chunks.push(missing.slice(i,i+chunkSize));
-  $('chunks').innerHTML='<h2>Missing chunks of 200</h2>'+chunks.map((chunk,i)=>`<div class="chunk"><h3>Chunk ${i+1} of ${chunks.length} (${chunk.length})</h3><button data-i="${i}">Copy chunk ${i+1}</button><textarea readonly>${q(chunk)}</textarea></div>`).join('');
+  $('copyMeta').onclick=e=>copyText(jq(missingBoth),e.target);
+  $('copyMetaPrompt').onclick=e=>copyText('Add hanyu pinyin and short English meanings for these Chinese helper phrases. Output JSON entries only in the format ["phrase", "pinyin", "English meaning"]. Keep meanings simple for Singapore primary-school students. Phrases: '+jq(missingBoth.map(x=>x[0])),e.target);
+  const chunks=chunkify(missing,200);
+  $('chunks').innerHTML='<h2>Missing helper character chunks</h2>'+(!chunks.length?'<p class="ok">No missing characters.</p>':chunks.map((chunk,i)=>`<div class="chunk"><h3>Chunk ${i+1} of ${chunks.length} (${chunk.length})</h3><button data-i="${i}">Copy chunk ${i+1}</button><textarea readonly>${q(chunk)}</textarea></div>`).join(''));
   $('chunks').querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=e=>copyText(q(chunks[Number(btn.dataset.i)]),e.target));
+  const metaChunks=chunkify(missingBoth,200);
+  $('metadataChunks').innerHTML='<h2>Missing metadata chunks</h2>'+(!metaChunks.length?'<p class="ok">No missing metadata.</p>':metaChunks.map((chunk,i)=>`<div class="chunk"><h3>Metadata chunk ${i+1} of ${metaChunks.length} (${chunk.length})</h3><button data-mi="${i}">Copy metadata chunk ${i+1}</button><textarea readonly>${jq(chunk)}</textarea></div>`).join(''));
+  $('metadataChunks').querySelectorAll('button[data-mi]').forEach(btn=>btn.onclick=e=>copyText(jq(metaChunks[Number(btn.dataset.mi)]),e.target));
   console.log('Helper coverage audit', window.__helperAudit);
 }
 run().catch(err=>{$('status').innerHTML='<span class="bad">Audit failed: '+String(err.message||err)+'</span>';console.error(err);});
