@@ -13,11 +13,13 @@
     .subtitle { color: var(--muted); font-size: 14px; max-width: 780px; margin: 0 auto; line-height: 1.45; }
     .wrap { width: min(980px, 96vw); margin: 0 auto 30px; }
     .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.04); }
-    .controls { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; align-items: end; }
+    .controls { display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr)); gap: 10px; align-items: end; }
     label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 4px; }
-    select, input { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; }
+    select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; }
     .stats { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .card { margin: 16px auto 10px; min-height: 360px; width: min(620px, 94vw); background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 20px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; }
+    .card { margin: 16px auto 10px; min-height: 360px; width: min(620px, 94vw); background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 28px 20px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; }
+    .wordStage { min-height: 140px; display: flex; align-items: center; justify-content: center; width: 100%; }
+    .answerSlot { min-height: 145px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; }
     .badge { display: inline-block; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; margin-bottom: 16px; }
     .frontText { font-size: clamp(58px, 16vw, 130px); line-height: 1.05; font-weight: 700; }
     .wordText { font-size: clamp(48px, 12vw, 96px); line-height: 1.08; font-weight: 700; }
@@ -36,6 +38,7 @@
     details { margin-top: 16px; }
     summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
     .hint { text-align: center; color: var(--muted); font-size: 13px; margin-top: -4px; }
+    .miniBtn { margin-top: 8px; padding: 6px 10px; font-size: 13px; border-radius: 10px; }
     @media (max-width: 760px) { .controls { grid-template-columns: 1fr 1fr; } .controls .wide { grid-column: 1 / -1; } .card { min-height: 330px; } }
   </style>
 </head>
@@ -51,8 +54,6 @@
         <div><label>Child</label><select id="child"><option>Child 1</option><option>Child 2</option><option>Child 3</option><option>Child 4</option><option>Child 5</option></select></div>
         <div><label>Level</label><select id="level"></select></div>
         <div><label>Mode</label><select id="mode"><option value="words">Words / 词语</option><option value="characters">Characters / 字</option><option value="sentences">Sentences / 句子</option><option value="mixed">Mixed review</option></select></div>
-        <div><label>Filter</label><select id="tag"><option value="all">All</option><option value="daily">Daily life</option><option value="school">School</option><option value="family">Family</option><option value="emotion">Emotion</option><option value="compo">Composition</option><option value="oral">Oral</option><option value="reading">Reading</option><option value="values">Values</option><option value="nature">Nature</option></select></div>
-        <div class="wide"><label>Search</label><input id="search" placeholder="Search Chinese / pinyin / English" /></div>
       </div>
       <div class="stats" id="stats"></div>
     </section>
@@ -66,7 +67,7 @@
       <button id="again" class="bad">Practise again & Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
-    <div class="hint">Swipe right = I know this. Swipe left = practise again. Both move to the next card. After the last card, it returns to the start.</div>
+    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this. Swipe left = practise again. After the last card, it returns to the start.</div>
 
     <section class="panel">
       <details>
@@ -218,8 +219,6 @@ function normalizeLevel(x) { return (x || '').replace(/A|B/g,'').trim(); }
 function buildCards() {
   const mode = $('mode').value;
   const level = $('level').value;
-  const tag = $('tag').value;
-  const q = $('search').value.trim().toLowerCase();
   let pool = [];
   if (mode === 'characters') pool = characterCards;
   else if (mode === 'sentences') pool = STARTER_WORDS.filter(x => x.type === 'sentence');
@@ -228,10 +227,7 @@ function buildCards() {
 
   cards = pool.filter(x => {
     const levelOk = level === 'All' || x.level === level || normalizeLevel(x.level) === level;
-    const tagOk = tag === 'all' || x.tag === tag || (mode === 'characters' && tag === 'all');
-    const hay = `${x.text} ${x.pinyin || ''} ${x.meaning || ''} ${x.example || ''}`.toLowerCase();
-    const qOk = !q || hay.includes(q);
-    return levelOk && tagOk && qOk;
+    return levelOk;
   });
   index = Math.min(index, Math.max(cards.length - 1, 0));
   revealed = false;
@@ -251,7 +247,7 @@ function render() {
   renderStats();
   const card = $('card');
   if (!cards.length) {
-    card.innerHTML = '<div class="meaning">No cards found. Try All level / All filter.</div>';
+    card.innerHTML = '<div class="meaning">No cards found. Try All level.</div>';
     $('list').innerHTML = '';
     $('knownList').innerHTML = '';
     return;
@@ -261,8 +257,10 @@ function render() {
   const bigClass = c.type === 'character' ? 'frontText' : 'wordText';
   card.innerHTML = `
     <span class="badge">${index + 1} / ${cards.length} · ${c.level}${c.lesson ? ' · ' + c.lesson : ''} · ${c.type} · ${known}</span>
-    <div class="${bigClass}">${c.text}</div>
-    ${revealed ? `<div class="pinyin">${c.pinyin || ''}</div><div class="meaning">${c.meaning || ''}</div><div class="example">${c.example || ''}</div>` : '<div class="meaning">Tap Reveal / Space</div>'}
+    <div class="wordStage"><div class="${bigClass}">${c.text}</div></div>
+    <div class="answerSlot">
+      ${revealed ? `<div class="pinyin">${c.pinyin || ''}</div><div class="meaning">${c.meaning || ''}</div><div class="example">${c.example || ''}</div>` : ''}
+    </div>
   `;
   renderList();
 }
@@ -277,7 +275,22 @@ function renderList() {
 
 function renderKnownList() {
   const known = cards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
-  $('knownList').innerHTML = known.length ? known.map(c => `<div class="item"><b>${c.text}</b> ✓<br><small>${c.pinyin || ''}</small><br><small>${c.meaning || ''}</small></div>`).join('') : '<div class="item">No known cards yet for this child/filter.</div>';
+  $('knownList').innerHTML = known.length ? known.map((c, i) => `
+    <div class="item">
+      <b>${c.text}</b> ✓<br>
+      <small>${c.pinyin || ''}</small><br>
+      <small>${c.meaning || ''}</small><br>
+      <button class="miniBtn bad unknownBtn" data-known-index="${i}">Unknown / practise again</button>
+    </div>`).join('') : '<div class="item">No known cards yet for this child.</div>';
+  window.__knownCardsForButtons = known;
+}
+
+function makeUnknown(card) {
+  if (!card) return;
+  localStorage.setItem(progressKey(card), 'again');
+  renderList();
+  renderKnownList();
+  renderStats();
 }
 
 function next(delta) { if (!cards.length) return; index = (index + delta + cards.length) % cards.length; revealed = false; render(); }
@@ -286,15 +299,31 @@ function shuffle() { for (let i = cards.length - 1; i > 0; i--) { const j = Math
 $('prev').onclick = () => next(-1);
 $('next').onclick = () => next(1);
 $('flip').onclick = () => { revealed = !revealed; render(); };
-$('card').onclick = () => { revealed = !revealed; render(); };
+$('card').onclick = (e) => {
+  if (suppressNextClick) { e.preventDefault(); return; }
+  if (!cards.length) return;
+  const rect = $('card').getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  if (x < rect.width / 3) next(-1);
+  else if (x > rect.width * 2 / 3) next(1);
+  else { revealed = !revealed; render(); }
+};
 $('know').onclick = () => mark('known', true);
 $('again').onclick = () => mark('again', true);
 $('shuffle').onclick = shuffle;
-['child','level','mode','tag','search'].forEach(id => $(id).addEventListener('input', buildCards));
+
+$('knownList').addEventListener('click', e => {
+  const btn = e.target.closest('.unknownBtn');
+  if (!btn) return;
+  const idx = Number(btn.dataset.knownIndex);
+  makeUnknown((window.__knownCardsForButtons || [])[idx]);
+});
+['child','level','mode'].forEach(id => $(id).addEventListener('input', buildCards));
 document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') mark('known', true); if (e.key === 'ArrowLeft') mark('again', true); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
 
 let touchStartX = 0;
 let touchStartY = 0;
+let suppressNextClick = false;
 $('card').addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
   touchStartY = e.changedTouches[0].screenY;
@@ -303,8 +332,10 @@ $('card').addEventListener('touchend', e => {
   const dx = e.changedTouches[0].screenX - touchStartX;
   const dy = e.changedTouches[0].screenY - touchStartY;
   if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+    suppressNextClick = true;
     if (dx > 0) mark('known', true);
     else mark('again', true);
+    setTimeout(() => { suppressNextClick = false; }, 250);
   }
 }, { passive: true });
 

@@ -1,40 +1,17 @@
-# Higher Chinese Word Bank Companion App
+# Higher Chinese Word Bank v4
 
-This is a separate companion app for the existing `chineseflashcard` GitHub Pages app.
+Replace your existing:
 
-## How to install
+hcl-words/index.html
 
-Upload this folder as:
+with this updated index.html.
 
-```text
-chineseflashcard/
-  index.html
-  hcl-words/
-    index.html
-    README.md
-```
-
-Then visit:
-
-```text
-https://edyeo82.github.io/chineseflashcard/hcl-words/
-```
-
-## What it does
-
-- Does not overwrite the original app.
-- Tries to load the original app's `../index.html` and extract `flashcardData`.
-- Adds a starter word / phrase / sentence bank.
-- Supports Child 1 to Child 5 local progress tracking.
-- Supports Characters, Words, Sentences, and Mixed Review modes.
-
-## Important source note
-
-The original app says its character data was parsed from:
-
-```text
-https://www.moe.gov.sg/-/media/files/primary/2015characterlistprimaryhigherchinese.pdf
-```
-
-This companion app adds a starter vocabulary layer. It is not yet a complete official MOE textbook vocabulary list.
-The best next step is to add school spelling lists and textbook lesson words.
+Changes:
+- Removed Search and Filter controls.
+- Chinese word/phrase now stays in the same position before and after reveal, so the card feels more like it is turning.
+- Tap left side = previous.
+- Tap right side = next.
+- Tap centre = reveal / hide.
+- Swipe right = I know this + next.
+- Swipe left = practise again + next.
+- Known words still support Unknown / practise again.
