@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Higher Chinese Word Bank</title>
+  <!-- hcl-words v12: words-only, no mode/filter/search, simplified buttons -->
   <style>
     :root { --bg:#f7f7fb; --card:#fff; --ink:#222; --muted:#666; --line:#ddd; --accent:#3657d8; }
     * { box-sizing: border-box; }
@@ -37,6 +38,10 @@
     summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
     .hint { text-align: center; color: var(--muted); font-size: 13px; margin-top: -4px; }
     @media (max-width: 760px) { .controls { grid-template-columns: 1fr 1fr; } .controls .wide { grid-column: 1 / -1; } .card { min-height: 330px; } }
+  
+    .refChar { text-decoration: none !important; }
+  
+    #mode, #tag, #search { display: none !important; }
   </style>
 </head>
 <body>
@@ -50,9 +55,6 @@
       <div class="controls">
         <div><label>Child</label><select id="child"><option>Child 1</option><option>Child 2</option><option>Child 3</option><option>Child 4</option><option>Child 5</option></select></div>
         <div><label>Level</label><select id="level"></select></div>
-        <div><label>Mode</label><select id="mode"><option value="words">Words / 词语</option><option value="characters">Characters / 字</option><option value="sentences">Sentences / 句子</option><option value="mixed">Mixed review</option></select></div>
-        <div><label>Filter</label><select id="tag"><option value="all">All</option><option value="daily">Daily life</option><option value="school">School</option><option value="family">Family</option><option value="emotion">Emotion</option><option value="compo">Composition</option><option value="oral">Oral</option><option value="reading">Reading</option><option value="values">Values</option><option value="nature">Nature</option></select></div>
-        <div class="wide"><label>Search</label><input id="search" placeholder="Search Chinese / pinyin / English" /></div>
       </div>
       <div class="stats" id="stats"></div>
     </section>
@@ -63,10 +65,9 @@
       <button id="flip" class="primary">Reveal</button>
       <button id="next">Next</button>
       <button id="know" class="good">I know this & Next</button>
-      <button id="again" class="bad">Practise again & Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
-    <div class="hint">Swipe right = I know this. Swipe left = practise again. Both move to the next card. After the last card, it returns to the start.</div>
+    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this. Swipe left = I need to revise this again. Known cards disappear from practice.</div>
 
     <section class="panel">
       <details>
@@ -299,9 +300,8 @@ $('next').onclick = () => next(1);
 $('flip').onclick = () => { revealed = !revealed; render(); };
 $('card').onclick = () => { revealed = !revealed; render(); };
 $('know').onclick = () => mark('known', true);
-$('again').onclick = () => mark('again', true);
 $('shuffle').onclick = shuffle;
-['child','level','mode','tag','search'].forEach(id => $(id).addEventListener('input', buildCards));
+['child','level'].forEach(id => $(id).addEventListener('input', () => buildCards(0)));
 document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') mark('known', true); if (e.key === 'ArrowLeft') mark('again', true); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
 
 let touchStartX = 0;
