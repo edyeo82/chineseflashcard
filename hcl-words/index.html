@@ -67,7 +67,7 @@
       <button id="again" class="bad">Practise again & Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
-    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this. Swipe left = practise again. After the last card, it returns to the start.</div>
+    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this and remove from deck. Swipe left = practise again. Known cards disappear from practice. After the last active card, it returns to the start.</div>
 
     <section class="panel">
       <details>
@@ -171,6 +171,7 @@ const STARTER_WORDS = [
 ];
 
 let characterCards = [];
+let allCards = [];
 let cards = [];
 let index = 0;
 let revealed = false;
@@ -216,7 +217,7 @@ function populateLevels() {
 
 function normalizeLevel(x) { return (x || '').replace(/A|B/g,'').trim(); }
 
-function buildCards() {
+function buildCards(preferredIndex = 0) {
   const mode = $('mode').value;
   const level = $('level').value;
   let pool = [];
@@ -225,31 +226,45 @@ function buildCards() {
   else if (mode === 'mixed') pool = [...characterCards, ...STARTER_WORDS];
   else pool = STARTER_WORDS.filter(x => x.type === 'word');
 
-  cards = pool.filter(x => {
+  allCards = pool.filter(x => {
     const levelOk = level === 'All' || x.level === level || normalizeLevel(x.level) === level;
     return levelOk;
   });
-  index = Math.min(index, Math.max(cards.length - 1, 0));
+
+  // Active swipe deck excludes cards already marked as known for the selected child.
+  cards = allCards.filter(x => localStorage.getItem(progressKey(x)) !== 'known');
+  index = Math.min(Math.max(preferredIndex, 0), Math.max(cards.length - 1, 0));
   revealed = false;
   render();
 }
 
 function progressKey(card) { return `hclWords:${$('child').value}:${card.type}:${card.level}:${card.text}`; }
-function mark(v, moveNext = false) { if (!cards.length) return; localStorage.setItem(progressKey(cards[index]), v); if (moveNext) { next(1); } else { renderList(); renderKnownList(); renderStats(); render(); } }
-function knownCount() { return cards.filter(c => localStorage.getItem(progressKey(c)) === 'known').length; }
+function mark(v, moveNext = false) {
+  if (!cards.length) return;
+  const card = cards[index];
+  localStorage.setItem(progressKey(card), v);
+  if (v === 'known') {
+    // Remove known card from the active deck and keep position on the next available card.
+    buildCards(index);
+    return;
+  }
+  if (moveNext) { next(1); }
+  else { renderList(); renderKnownList(); renderStats(); render(); }
+}
+function knownCount() { return allCards.filter(c => localStorage.getItem(progressKey(c)) === 'known').length; }
 
 function renderStats() {
   const originalStatus = characterCards.length ? `${characterCards.length} original character cards loaded` : 'Original character list not loaded yet';
-  $('stats').textContent = `${cards.length} cards shown | ${knownCount()} known for ${$('child').value} | ${originalStatus} | starter word/phrase cards: ${STARTER_WORDS.length}`;
+  $('stats').textContent = `${cards.length} cards left to practise | ${knownCount()} known for ${$('child').value} | ${originalStatus} | starter word/phrase cards: ${STARTER_WORDS.length}`;
 }
 
 function render() {
   renderStats();
   const card = $('card');
   if (!cards.length) {
-    card.innerHTML = '<div class="meaning">No cards found. Try All level.</div>';
-    $('list').innerHTML = '';
-    $('knownList').innerHTML = '';
+    card.innerHTML = '<div class="meaning">All cards in this deck are marked as known.<br><br>Open Known words below if you need to move any card back to practise again.</div>';
+    $('list').innerHTML = '<div class="item">No active practice cards. Known cards are hidden from the swipe deck.</div>';
+    renderKnownList();
     return;
   }
   const c = cards[index];
@@ -274,7 +289,7 @@ function renderList() {
 }
 
 function renderKnownList() {
-  const known = cards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
+  const known = allCards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
   $('knownList').innerHTML = known.length ? known.map((c, i) => `
     <div class="item">
       <b>${c.text}</b> ✓<br>
@@ -288,9 +303,7 @@ function renderKnownList() {
 function makeUnknown(card) {
   if (!card) return;
   localStorage.setItem(progressKey(card), 'again');
-  renderList();
-  renderKnownList();
-  renderStats();
+  buildCards(index);
 }
 
 function next(delta) { if (!cards.length) return; index = (index + delta + cards.length) % cards.length; revealed = false; render(); }
@@ -318,7 +331,7 @@ $('knownList').addEventListener('click', e => {
   const idx = Number(btn.dataset.knownIndex);
   makeUnknown((window.__knownCardsForButtons || [])[idx]);
 });
-['child','level','mode'].forEach(id => $(id).addEventListener('input', buildCards));
+['child','level','mode'].forEach(id => $(id).addEventListener('input', () => buildCards(0)));
 document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') mark('known', true); if (e.key === 'ArrowLeft') mark('again', true); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
 
 let touchStartX = 0;
