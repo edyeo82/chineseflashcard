@@ -18,7 +18,7 @@
 </main>
 <script>
 const DATA_URL='https://raw.githubusercontent.com/edyeo82/chineseflashcard/f8373730fbbb589cc50efa19cd54b736fdf697f6/index.html';
-const HELPER_URLS=['hcl-words/helpers.json','hcl-words/helpers-extra.json','hcl-words/helpers-coverage.json'];
+const HELPER_URLS=['hcl-words/helpers.json','hcl-words/helpers-extra.json','hcl-words/helpers-metadata-clean-a.json','hcl-words/helpers-metadata-clean-b.json','hcl-words/helpers-metadata-clean-c.json','hcl-words/helpers-metadata-clean-d.json','hcl-words/helpers-metadata-clean-e.json','hcl-words/helpers-coverage.json'];
 let sourceData={},sourceCards=[],exampleCards=[],readingMap=new Map(),allCards=[],cards=[],index=0,revealed=false,suppressClick=false,dragActive=false,startX=0,startY=0,currentDX=0,isShuffled=false;
 const $=id=>document.getElementById(id);
 function esc(v){return String(v||'').replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));}
