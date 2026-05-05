@@ -176,6 +176,43 @@ let index = 0;
 let revealed = false;
 
 const $ = (id) => document.getElementById(id);
+
+const STORAGE_CHILD_KEY = 'hclWords:selectedChild';
+const STORAGE_LEVEL_KEY = 'hclWords:selectedLevel';
+let storageOk = true;
+
+function testStorage() {
+  try {
+    const key = 'hclWords:storageTest';
+    window.localStorage.setItem(key, '1');
+    window.localStorage.removeItem(key);
+    storageOk = true;
+  } catch (e) {
+    storageOk = false;
+  }
+}
+function safeGet(key) {
+  try { return window.localStorage.getItem(key); }
+  catch (e) { storageOk = false; return null; }
+}
+function safeSet(key, value) {
+  try { window.localStorage.setItem(key, value); storageOk = true; }
+  catch (e) { storageOk = false; }
+}
+function saveSelections() {
+  safeSet(STORAGE_CHILD_KEY, $('child').value);
+  safeSet(STORAGE_LEVEL_KEY, $('level').value);
+}
+function restoreSelections() {
+  const savedChild = safeGet(STORAGE_CHILD_KEY);
+  const savedLevel = safeGet(STORAGE_LEVEL_KEY);
+  if (savedChild && Array.from($('child').options).some(o => o.value === savedChild || o.text === savedChild)) $('child').value = savedChild;
+  if (savedLevel && Array.from($('level').options).some(o => o.value === savedLevel || o.text === savedLevel)) $('level').value = savedLevel;
+}
+function progressKeyFor(child, card) {
+  return `hclWords:${child}:${card.type}:${card.level}:${card.text}`;
+}
+
 function htmlEscape(value) {
   return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
 }
@@ -244,17 +281,17 @@ function buildCards(preferredIndex = 0) {
   });
 
   // Active swipe deck excludes cards already marked as known for the selected child.
-  cards = allCards.filter(x => localStorage.getItem(progressKey(x)) !== 'known');
+  cards = allCards.filter(x => safeGet(progressKey(x)) !== 'known');
   index = Math.min(Math.max(preferredIndex, 0), Math.max(cards.length - 1, 0));
   revealed = false;
   render();
 }
 
-function progressKey(card) { return `hclWords:${$('child').value}:${card.type}:${card.level}:${card.text}`; }
+function progressKey(card) { return progressKeyFor($('child').value, card); }
 function mark(v, moveNext = false) {
   if (!cards.length) return;
   const card = cards[index];
-  localStorage.setItem(progressKey(card), v);
+  safeSet(progressKey(card), v);
   if (v === 'known') {
     // Remove known card from the active deck and keep position on the next available card.
     buildCards(index);
@@ -263,11 +300,12 @@ function mark(v, moveNext = false) {
   if (moveNext) { next(1); }
   else { renderList(); renderKnownList(); renderStats(); render(); }
 }
-function knownCount() { return allCards.filter(c => localStorage.getItem(progressKey(c)) === 'known').length; }
+function knownCount() { return allCards.filter(c => safeGet(progressKey(c)) === 'known').length; }
 
 function renderStats() {
   const originalStatus = characterCards.length ? `${characterCards.length} original character cards loaded` : 'Original character list not loaded yet';
-  $('stats').textContent = `${cards.length} cards left to practise | ${knownCount()} known for ${$('child').value} | ${originalStatus} | starter word cards: ${STARTER_WORDS.filter(x => x.type === 'word').length}`;
+  const saveStatus = storageOk ? 'progress saved on this device' : 'progress NOT saved: browser storage is blocked/private';
+  $('stats').textContent = `${cards.length} cards left to practise | ${knownCount()} known for ${$('child').value} | ${saveStatus} | ${originalStatus} | starter word cards: ${STARTER_WORDS.filter(x => x.type === 'word').length}`;
 }
 
 function render() {
@@ -280,7 +318,7 @@ function render() {
     return;
   }
   const c = cards[index];
-  const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
+  const known = safeGet(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
   card.innerHTML = `
     <div id="swipeFeedback" class="swipeFeedback"></div>
     <span class="badge">${index + 1} / ${cards.length} · ${c.level} · word · ${known}</span>
@@ -294,14 +332,14 @@ function render() {
 
 function renderList() {
   $('list').innerHTML = cards.slice(0, 80).map((c) => {
-    const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓' : '';
+    const known = safeGet(progressKey(c)) === 'known' ? '✓' : '';
     return `<div class="item"><b>${renderUnderlinedWord(c.text, c.level)}</b> ${known}<br><small>${htmlEscape(c.pinyin || '')}</small><br><small>${htmlEscape(c.meaning || '')}</small></div>`;
   }).join('') + (cards.length > 80 ? `<div class="item">+ ${cards.length - 80} more cards</div>` : '');
   renderKnownList();
 }
 
 function renderKnownList() {
-  const known = allCards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
+  const known = allCards.filter(c => safeGet(progressKey(c)) === 'known');
   $('knownList').innerHTML = known.length ? known.map((c, i) => `
     <div class="item">
       <b>${renderUnderlinedWord(c.text, c.level)}</b> ✓<br>
@@ -314,7 +352,7 @@ function renderKnownList() {
 
 function makeUnknown(card) {
   if (!card) return;
-  localStorage.setItem(progressKey(card), 'again');
+  safeSet(progressKey(card), 'again');
   buildCards(index);
 }
 
@@ -360,7 +398,8 @@ $('knownList').addEventListener('click', e => {
   const idx = Number(btn.dataset.knownIndex);
   makeUnknown((window.__knownCardsForButtons || [])[idx]);
 });
-['child','level'].forEach(id => $(id).addEventListener('input', () => buildCards(0)));
+$('child').addEventListener('input', () => { saveSelections(); buildCards(0); });
+$('level').addEventListener('input', () => { saveSelections(); buildCards(0); });
 document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') animateDecision('known'); if (e.key === 'ArrowLeft') animateDecision('again'); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
 
 let touchStartX = 0;
@@ -388,7 +427,7 @@ document.addEventListener('touchend', e => {
   lastTouchEnd = now;
 }, { passive: false });
 
-(async function init(){ await loadCharactersFromOriginalApp(); populateLevels(); buildCards(); })();
+(async function init(){ testStorage(); await loadCharactersFromOriginalApp(); populateLevels(); restoreSelections(); buildCards(); saveSelections(); })();
 </script>
 </body>
 </html>

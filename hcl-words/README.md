@@ -23,6 +23,24 @@ https://edyeo82.github.io/chineseflashcard/hcl-words/index.html
 3. Look at the Chinese word or phrase on the card.
 4. Tap the centre of the card to reveal or hide the pinyin, English meaning and example sentence.
 
+## Progress storage
+
+Each child has separate progress saved in the browser using localStorage.
+
+The app now also remembers the last selected child and level. The status line will show either:
+
+```text
+progress saved on this device
+```
+
+or:
+
+```text
+progress NOT saved: browser storage is blocked/private
+```
+
+Progress is saved on the current device/browser only. It is not synced across phones, tablets or browsers.
+
 ## Card controls
 
 - Tap left side of the card: previous card
@@ -36,9 +54,15 @@ https://edyeo82.github.io/chineseflashcard/hcl-words/index.html
 
 When the app reaches the end of the active deck, it automatically returns to the first active card.
 
+## Known words
+
+When a card is marked as **known**, it is removed from the active swipe/practice deck so time is not wasted revisiting it.
+
+Open **Known words for selected child** to see words already marked as known. If a word was marked as known by mistake, use **Unknown / practise again** to move it back into the active practice deck.
+
 ## Mobile behaviour
 
-The page disables common accidental double-tap zoom behaviour on mobile, so card taps and swipes should feel more like a flashcard app.
+The page reduces common accidental double-tap zoom behaviour on mobile so taps and swipes should feel more like a flashcard app.
 
 ## Underlined characters
 
@@ -48,16 +72,6 @@ For example:
 
 - Primary 3 words underline characters found in Primary 3A / Primary 3B.
 - Primary 4 words underline characters found in Primary 4A / Primary 4B.
-
-## Known words
-
-Each child profile has its own saved progress in the browser.
-
-When a card is marked as **known**, it is removed from the active swipe/practice deck so time is not wasted revisiting it.
-
-Open **Known words for selected child** to see words already marked as known. If a word was marked as known by mistake, use **Unknown / practise again** to move it back into the active practice deck.
-
-Progress is saved locally in the browser using localStorage. It is not uploaded to a server.
 
 ## Source note
 
