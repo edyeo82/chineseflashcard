@@ -46,7 +46,7 @@
 <body>
   <header>
     <h1>Higher Chinese Word Bank</h1>
-    <p class="subtitle">A words-only companion app for your existing character flashcards. It uses the original character list as a reference and underlines characters that appear in that list.</p>
+    <p class="subtitle">A words-only companion app for your existing character flashcards. It uses the original character list as a reference and underlines only characters introduced in the same selected Primary level.</p>
   </header>
 
   <main class="wrap">
@@ -67,7 +67,7 @@
       <button id="again" class="bad">Practise again & Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
-    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this and remove from deck. Swipe left = practise again. Underlined characters are found in the original character list. After the last active card, it returns to the start.</div>
+    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this and remove from deck. Swipe left = practise again. Underlined characters are from the same Primary level in the original character list. After the last active card, it returns to the start.</div>
 
     <section class="panel">
       <details>
@@ -78,7 +78,7 @@
         <summary>Current list</summary>
         <div class="list" id="list"></div>
       </details>
-      <p class="note"><b>Source note:</b> This words-only app attempts to read your original <code>../index.html</code> flashcardData as a reference character list. Characters in each word that are found in the original list are underlined. The word bank is a starter syllabus-aligned layer, not an official complete MOE textbook vocabulary list yet. Add school spelling lists / textbook words as you collect them.</p>
+      <p class="note"><b>Source note:</b> This words-only app attempts to read your original <code>../index.html</code> flashcardData as a reference character list. Characters in each word are underlined only if they appear in the same Primary level in the original character list. For example, Primary 3 words underline Primary 3A/3B source characters only, not every character from P1-P6. The word bank is a starter syllabus-aligned layer, not an official complete MOE textbook vocabulary list yet. Add school spelling lists / textbook words as you collect them.</p>
     </section>
   </main>
 
@@ -173,11 +173,17 @@ const $ = (id) => document.getElementById(id);
 function htmlEscape(value) {
   return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
 }
-function referenceCharSet() {
-  return new Set(characterCards.map(c => c.text));
+function referenceCharSet(level) {
+  const normalized = normalizeLevel(level);
+  if (!normalized || normalized === 'All') return new Set();
+  return new Set(
+    characterCards
+      .filter(c => normalizeLevel(c.level) === normalized)
+      .map(c => c.text)
+  );
 }
-function renderUnderlinedWord(text) {
-  const ref = referenceCharSet();
+function renderUnderlinedWord(text, level) {
+  const ref = referenceCharSet(level);
   return Array.from(String(text || '')).map(ch => {
     const safe = htmlEscape(ch);
     return ref.has(ch) ? `<span class="refChar">${safe}</span>` : safe;
@@ -271,7 +277,7 @@ function render() {
   const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
   card.innerHTML = `
     <span class="badge">${index + 1} / ${cards.length} · ${c.level} · word · ${known}</span>
-    <div class="wordStage"><div class="wordText">${renderUnderlinedWord(c.text)}</div></div>
+    <div class="wordStage"><div class="wordText">${renderUnderlinedWord(c.text, c.level)}</div></div>
     <div class="answerSlot">
       ${revealed ? `<div class="pinyin">${c.pinyin || ''}</div><div class="meaning">${c.meaning || ''}</div><div class="example">${c.example || ''}</div>` : ''}
     </div>
@@ -282,7 +288,7 @@ function render() {
 function renderList() {
   $('list').innerHTML = cards.slice(0, 80).map((c) => {
     const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓' : '';
-    return `<div class="item"><b>${renderUnderlinedWord(c.text)}</b> ${known}<br><small>${htmlEscape(c.pinyin || '')}</small><br><small>${htmlEscape(c.meaning || '')}</small></div>`;
+    return `<div class="item"><b>${renderUnderlinedWord(c.text, c.level)}</b> ${known}<br><small>${htmlEscape(c.pinyin || '')}</small><br><small>${htmlEscape(c.meaning || '')}</small></div>`;
   }).join('') + (cards.length > 80 ? `<div class="item">+ ${cards.length - 80} more cards</div>` : '');
   renderKnownList();
 }
@@ -291,7 +297,7 @@ function renderKnownList() {
   const known = allCards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
   $('knownList').innerHTML = known.length ? known.map((c, i) => `
     <div class="item">
-      <b>${renderUnderlinedWord(c.text)}</b> ✓<br>
+      <b>${renderUnderlinedWord(c.text, c.level)}</b> ✓<br>
       <small>${htmlEscape(c.pinyin || '')}</small><br>
       <small>${htmlEscape(c.meaning || '')}</small><br>
       <button class="miniBtn bad unknownBtn" data-known-index="${i}">Unknown / practise again</button>
