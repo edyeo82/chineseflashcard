@@ -2,72 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Higher Chinese Word Bank</title>
-  <!-- hcl-words v12: words-only, no mode/filter/search, simplified buttons -->
+  <!-- hcl-words v13 clean rebuild: words-only, no mode/filter/search -->
   <style>
     :root { --bg:#f7f7fb; --card:#fff; --ink:#222; --muted:#666; --line:#ddd; --accent:#3657d8; }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); }
-    header { padding: 18px 14px 10px; text-align: center; }
-    h1 { margin: 0 0 6px; font-size: clamp(24px, 5vw, 38px); }
-    .subtitle { color: var(--muted); font-size: 14px; max-width: 780px; margin: 0 auto; line-height: 1.45; }
-    .wrap { width: min(980px, 96vw); margin: 0 auto 30px; }
-    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.04); }
-    .controls { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; align-items: end; }
-    label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 4px; }
-    select, input { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; }
-    .stats { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .card { margin: 16px auto 10px; min-height: 360px; width: min(620px, 94vw); background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 20px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; }
+    html, body { margin: 0; min-height: 100%; touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+    body { font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); }
+    header { padding: 22px 12px 10px; text-align: center; }
+    h1 { margin: 0; font-size: clamp(28px, 5vw, 46px); line-height: 1.05; }
+    .wrap { width: min(760px, 94vw); margin: 0 auto 28px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; box-shadow: 0 6px 18px rgba(0,0,0,.04); }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 5px; }
+    select { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; background: #fff; }
+    .stats { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .card { position: relative; margin: 18px auto 12px; min-height: 360px; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 26px 18px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; touch-action: pan-y; -webkit-tap-highlight-color: transparent; transition: transform .24s ease, opacity .24s ease; overflow: hidden; }
+    .card.swipe-right { transform: translateX(115%) rotate(8deg); opacity: 0; }
+    .card.swipe-left { transform: translateX(-115%) rotate(-8deg); opacity: 0; }
+    .swipeFeedback { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) scale(.94); opacity: 0; z-index: 5; padding: 14px 18px; border-radius: 18px; font-size: clamp(22px, 5.5vw, 40px); font-weight: 700; white-space: nowrap; pointer-events: none; box-shadow: 0 8px 22px rgba(0,0,0,.15); transition: opacity .12s ease, transform .12s ease; }
+    .swipeFeedback.show { opacity: .96; transform: translate(-50%, -50%) scale(1); }
+    .swipeFeedback.known { background: #eaf8ed; border: 2px solid #7ac98a; color: #17642b; }
+    .swipeFeedback.again { background: #fff0f0; border: 2px solid #e59696; color: #8a2727; }
     .badge { display: inline-block; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; margin-bottom: 16px; }
-    .frontText { font-size: clamp(58px, 16vw, 130px); line-height: 1.05; font-weight: 700; }
-    .wordText { font-size: clamp(48px, 12vw, 96px); line-height: 1.08; font-weight: 700; }
-    .pinyin { margin-top: 16px; font-size: clamp(24px, 5vw, 44px); color: var(--accent); }
-    .meaning { margin-top: 12px; font-size: clamp(18px, 4vw, 28px); }
-    .example { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: clamp(17px, 3.5vw, 24px); line-height: 1.45; color: #333; }
-    .nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 14px 0; }
-    button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 15px; cursor: pointer; }
+    .wordStage { min-height: 145px; display: flex; align-items: center; justify-content: center; width: 100%; }
+    .wordText { font-size: clamp(54px, 14vw, 110px); line-height: 1.08; font-weight: 700; }
+    .answerSlot { min-height: 145px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; }
+    .pinyin { margin-top: 12px; font-size: clamp(24px, 5vw, 42px); color: var(--accent); }
+    .meaning { margin-top: 10px; font-size: clamp(18px, 4vw, 28px); }
+    .example { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: clamp(17px, 3.5vw, 23px); line-height: 1.45; color: #333; }
+    .nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 12px 0; }
+    button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 15px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
     button.good { background: #eaf8ed; }
-    button.bad { background: #fff0f0; }
-    .list { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+    .hint { text-align: center; color: var(--muted); font-size: 13px; margin: 4px auto 10px; line-height: 1.4; }
+    .list { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
     .item { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; line-height: 1.35; }
     .item b { font-size: 22px; }
     .note { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.45; }
-    details { margin-top: 16px; }
+    details { margin-top: 12px; }
     summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
-    .hint { text-align: center; color: var(--muted); font-size: 13px; margin-top: -4px; }
-    @media (max-width: 760px) { .controls { grid-template-columns: 1fr 1fr; } .controls .wide { grid-column: 1 / -1; } .card { min-height: 330px; } }
-  
-    .refChar { text-decoration: none !important; }
-  
-    #mode, #tag, #search { display: none !important; }
+    .miniBtn { margin-top: 8px; padding: 6px 10px; font-size: 13px; border-radius: 10px; background:#fff0f0; }
+    @media (max-width: 560px) {
+      header { padding-top: 16px; }
+      .controls { grid-template-columns: 1fr 1fr; }
+      .card { min-height: 330px; }
+      .nav button { padding: 10px 12px; }
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Higher Chinese Word Bank</h1>
-    <p class="subtitle">A separate companion app for your existing character flashcards. It reuses the original app's character data where possible, then adds word, phrase and sentence-level practice.</p>
   </header>
 
   <main class="wrap">
     <section class="panel">
       <div class="controls">
-        <div><label>Child</label><select id="child"><option>Child 1</option><option>Child 2</option><option>Child 3</option><option>Child 4</option><option>Child 5</option></select></div>
-        <div><label>Level</label><select id="level"></select></div>
+        <div>
+          <label>Child</label>
+          <select id="child">
+            <option>Child 1</option><option>Child 2</option><option>Child 3</option><option>Child 4</option><option>Child 5</option>
+          </select>
+        </div>
+        <div>
+          <label>Level</label>
+          <select id="level"></select>
+        </div>
       </div>
       <div class="stats" id="stats"></div>
     </section>
 
     <section id="card" class="card" title="Tap to reveal"></section>
+
     <div class="nav">
       <button id="prev">Previous</button>
       <button id="flip" class="primary">Reveal</button>
       <button id="next">Next</button>
-      <button id="know" class="good">I know this & Next</button>
+      <button id="know" class="good">I know this &amp; Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
-    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this. Swipe left = I need to revise this again. Known cards disappear from practice.</div>
+
+    <div class="hint">Tap left = previous · Tap centre = reveal · Tap right = next · Swipe right = I know this · Swipe left = revise again</div>
 
     <section class="panel">
       <details>
@@ -75,148 +92,564 @@
         <div class="list" id="knownList"></div>
       </details>
       <details>
-        <summary>Current list</summary>
+        <summary>Current practice list</summary>
         <div class="list" id="list"></div>
       </details>
-      <p class="note"><b>Source note:</b> This word bank is a starter syllabus-aligned layer, not an official complete MOE textbook vocabulary list yet. Add school spelling lists / textbook words as you collect them.</p>
+      <p class="note"><b>Source note:</b> This word bank is a starter vocabulary layer, not an official complete MOE textbook vocabulary list yet. Add school spelling lists / textbook words as you collect them.</p>
     </section>
   </main>
 
 <script>
-const STARTER_WORDS = [
-  {level:'Primary 1', type:'word', text:'雨衣', pinyin:'yǔ yī', meaning:'raincoat', tag:'daily', example:'下雨了，我穿上雨衣。'},
-  {level:'Primary 1', type:'word', text:'书包', pinyin:'shū bāo', meaning:'school bag', tag:'school', example:'我的书包很重。'},
-  {level:'Primary 1', type:'word', text:'同学', pinyin:'tóng xué', meaning:'classmate', tag:'school', example:'我和同学一起读书。'},
-  {level:'Primary 1', type:'word', text:'朋友', pinyin:'péng you', meaning:'friend', tag:'family', example:'他是我的好朋友。'},
-  {level:'Primary 1', type:'word', text:'老师', pinyin:'lǎo shī', meaning:'teacher', tag:'school', example:'老师教我们华文。'},
-  {level:'Primary 1', type:'word', text:'学校', pinyin:'xué xiào', meaning:'school', tag:'school', example:'我每天去学校。'},
-  {level:'Primary 1', type:'word', text:'今天', pinyin:'jīn tiān', meaning:'today', tag:'daily', example:'今天的天气很好。'},
-  {level:'Primary 1', type:'word', text:'早上', pinyin:'zǎo shang', meaning:'morning', tag:'daily', example:'早上，我向妈妈说早安。'},
-  {level:'Primary 1', type:'word', text:'回家', pinyin:'huí jiā', meaning:'go home', tag:'daily', example:'放学后，我回家。'},
-  {level:'Primary 1', type:'word', text:'喜欢', pinyin:'xǐ huān', meaning:'like', tag:'emotion', example:'我喜欢读故事书。'},
-  {level:'Primary 1', type:'word', text:'开心', pinyin:'kāi xīn', meaning:'happy', tag:'emotion', example:'我收到礼物，觉得很开心。'},
-  {level:'Primary 1', type:'word', text:'看书', pinyin:'kàn shū', meaning:'read a book', tag:'school', example:'我喜欢在家看书。'},
-
-  {level:'Primary 2', type:'word', text:'身体', pinyin:'shēn tǐ', meaning:'body / health', tag:'daily', example:'我们要照顾自己的身体。'},
-  {level:'Primary 2', type:'word', text:'干净', pinyin:'gān jìng', meaning:'clean', tag:'daily', example:'教室变得很干净。'},
-  {level:'Primary 2', type:'word', text:'收拾', pinyin:'shōu shi', meaning:'tidy up', tag:'daily', example:'我把书桌收拾好。'},
-  {level:'Primary 2', type:'word', text:'衣服', pinyin:'yī fu', meaning:'clothes', tag:'daily', example:'妈妈帮妹妹洗衣服。'},
-  {level:'Primary 2', type:'word', text:'眼睛', pinyin:'yǎn jing', meaning:'eyes', tag:'daily', example:'看书时要保护眼睛。'},
-  {level:'Primary 2', type:'word', text:'因为', pinyin:'yīn wèi', meaning:'because', tag:'reading', example:'因为下雨，我们留在课室里。'},
-  {level:'Primary 2', type:'word', text:'所以', pinyin:'suǒ yǐ', meaning:'so / therefore', tag:'reading', example:'我生病了，所以没有上学。'},
-  {level:'Primary 2', type:'word', text:'庆祝', pinyin:'qìng zhù', meaning:'celebrate', tag:'daily', example:'我们一起庆祝生日。'},
-  {level:'Primary 2', type:'word', text:'故事', pinyin:'gù shi', meaning:'story', tag:'school', example:'老师给我们讲故事。'},
-  {level:'Primary 2', type:'word', text:'最喜欢', pinyin:'zuì xǐ huān', meaning:'like the most', tag:'emotion', example:'我最喜欢华文课。'},
-  {level:'Primary 2', type:'word', text:'帮忙', pinyin:'bāng máng', meaning:'help', tag:'values', example:'我在家帮妈妈的忙。'},
-  {level:'Primary 2', type:'word', text:'谢谢', pinyin:'xiè xie', meaning:'thank you', tag:'values', example:'别人帮我时，我会说谢谢。'},
-
-  {level:'Primary 3', type:'word', text:'希望', pinyin:'xī wàng', meaning:'hope', tag:'emotion', example:'我希望明天不会下雨。'},
-  {level:'Primary 3', type:'word', text:'失望', pinyin:'shī wàng', meaning:'disappointed', tag:'emotion', example:'比赛输了，他有点失望。'},
-  {level:'Primary 3', type:'word', text:'努力', pinyin:'nǔ lì', meaning:'work hard', tag:'values', example:'只要努力，就会有进步。'},
-  {level:'Primary 3', type:'word', text:'进步', pinyin:'jìn bù', meaning:'improve', tag:'school', example:'他的华文有很大的进步。'},
-  {level:'Primary 3', type:'word', text:'习惯', pinyin:'xí guàn', meaning:'habit', tag:'daily', example:'早睡早起是好习惯。'},
-  {level:'Primary 3', type:'word', text:'复习', pinyin:'fù xí', meaning:'revise', tag:'school', example:'考试前，我会复习课文。'},
-  {level:'Primary 3', type:'word', text:'认真', pinyin:'rèn zhēn', meaning:'serious / attentive', tag:'values', example:'她认真地完成作业。'},
-  {level:'Primary 3', type:'word', text:'准时', pinyin:'zhǔn shí', meaning:'punctual', tag:'values', example:'我们要准时到校。'},
-  {level:'Primary 3', type:'word', text:'突然', pinyin:'tū rán', meaning:'suddenly', tag:'compo', example:'突然，一阵大风吹来。'},
-  {level:'Primary 3', type:'word', text:'原来', pinyin:'yuán lái', meaning:'it turns out', tag:'reading', example:'原来是弟弟把门打开了。'},
-  {level:'Primary 3', type:'word', text:'邻居', pinyin:'lín jū', meaning:'neighbour', tag:'daily', example:'我们的邻居很友善。'},
-  {level:'Primary 3', type:'word', text:'安全', pinyin:'ān quán', meaning:'safety', tag:'values', example:'过马路时要注意安全。'},
-
-  {level:'Primary 4', type:'word', text:'责任', pinyin:'zé rèn', meaning:'responsibility', tag:'values', example:'照顾宠物是一种责任。'},
-  {level:'Primary 4', type:'word', text:'诚实', pinyin:'chéng shí', meaning:'honest', tag:'values', example:'诚实是很重要的品德。'},
-  {level:'Primary 4', type:'word', text:'惭愧', pinyin:'cán kuì', meaning:'ashamed', tag:'emotion', example:'我想起自己的错误，感到很惭愧。'},
-  {level:'Primary 4', type:'word', text:'后悔', pinyin:'hòu huǐ', meaning:'regret', tag:'emotion', example:'我后悔没有听妈妈的话。'},
-  {level:'Primary 4', type:'word', text:'提醒', pinyin:'tí xǐng', meaning:'remind', tag:'compo', example:'爸爸提醒我要带水壶。'},
-  {level:'Primary 4', type:'word', text:'阻止', pinyin:'zǔ zhǐ', meaning:'stop / prevent', tag:'compo', example:'我马上阻止弟弟乱跑。'},
-  {level:'Primary 4', type:'word', text:'保护', pinyin:'bǎo hù', meaning:'protect', tag:'values', example:'我们要保护环境。'},
-  {level:'Primary 4', type:'word', text:'环境', pinyin:'huán jìng', meaning:'environment', tag:'nature', example:'干净的环境让人舒服。'},
-  {level:'Primary 4', type:'word', text:'解决', pinyin:'jiě jué', meaning:'solve', tag:'reading', example:'我们一起想办法解决问题。'},
-  {level:'Primary 4', type:'word', text:'原因', pinyin:'yuán yīn', meaning:'reason', tag:'reading', example:'老师问他迟到的原因。'},
-  {level:'Primary 4', type:'word', text:'经过', pinyin:'jīng guò', meaning:'process / after passing', tag:'compo', example:'经过这件事，我学会了诚实。'},
-  {level:'Primary 4', type:'word', text:'终于', pinyin:'zhōng yú', meaning:'finally', tag:'compo', example:'经过努力，我终于成功了。'},
-
-  {level:'Primary 5', type:'word', text:'体谅', pinyin:'tǐ liàng', meaning:'be considerate', tag:'values', example:'我们要体谅父母的辛苦。'},
-  {level:'Primary 5', type:'word', text:'坚持', pinyin:'jiān chí', meaning:'persist', tag:'values', example:'他坚持练习，成绩进步了。'},
-  {level:'Primary 5', type:'word', text:'珍惜', pinyin:'zhēn xī', meaning:'treasure', tag:'values', example:'我们要珍惜和家人相处的时间。'},
-  {level:'Primary 5', type:'word', text:'信任', pinyin:'xìn rèn', meaning:'trust', tag:'values', example:'诚实能建立信任。'},
-  {level:'Primary 5', type:'word', text:'沟通', pinyin:'gōu tōng', meaning:'communicate', tag:'oral', example:'良好的沟通可以减少误会。'},
-  {level:'Primary 5', type:'word', text:'误会', pinyin:'wù huì', meaning:'misunderstanding', tag:'reading', example:'解释清楚后，误会解开了。'},
-  {level:'Primary 5', type:'word', text:'压力', pinyin:'yā lì', meaning:'pressure', tag:'oral', example:'考试前，有些同学会感到压力。'},
-  {level:'Primary 5', type:'word', text:'鼓励', pinyin:'gǔ lì', meaning:'encourage', tag:'values', example:'妈妈的鼓励让我更有信心。'},
-  {level:'Primary 5', type:'word', text:'自信', pinyin:'zì xìn', meaning:'confidence', tag:'emotion', example:'多练习可以增加自信。'},
-  {level:'Primary 5', type:'word', text:'参加', pinyin:'cān jiā', meaning:'participate', tag:'school', example:'我参加了学校的比赛。'},
-  {level:'Primary 5', type:'word', text:'活动', pinyin:'huó dòng', meaning:'activity', tag:'school', example:'这个活动很有意义。'},
-  {level:'Primary 5', type:'word', text:'意义', pinyin:'yì yì', meaning:'meaning / significance', tag:'reading', example:'帮助别人是一件有意义的事。'},
-
-  {level:'Primary 6', type:'word', text:'承担', pinyin:'chéng dān', meaning:'bear / take responsibility', tag:'values', example:'我们要勇于承担责任。'},
-  {level:'Primary 6', type:'word', text:'克服', pinyin:'kè fú', meaning:'overcome', tag:'values', example:'他克服困难，完成了任务。'},
-  {level:'Primary 6', type:'word', text:'困难', pinyin:'kùn nan', meaning:'difficulty', tag:'reading', example:'遇到困难时，不要轻易放弃。'},
-  {level:'Primary 6', type:'word', text:'贡献', pinyin:'gòng xiàn', meaning:'contribute', tag:'values', example:'每个人都可以为社会作出贡献。'},
-  {level:'Primary 6', type:'word', text:'社会', pinyin:'shè huì', meaning:'society', tag:'oral', example:'我们应该关心社会上的需要。'},
-  {level:'Primary 6', type:'word', text:'科技', pinyin:'kē jì', meaning:'technology', tag:'oral', example:'科技改变了我们的生活。'},
-  {level:'Primary 6', type:'word', text:'网络', pinyin:'wǎng luò', meaning:'internet', tag:'oral', example:'使用网络时要注意安全。'},
-  {level:'Primary 6', type:'word', text:'沉迷', pinyin:'chén mí', meaning:'be addicted / absorbed', tag:'oral', example:'我们不应该沉迷电子游戏。'},
-  {level:'Primary 6', type:'word', text:'判断', pinyin:'pàn duàn', meaning:'judge / decide', tag:'reading', example:'我们要学会判断信息是否可靠。'},
-  {level:'Primary 6', type:'word', text:'可靠', pinyin:'kě kào', meaning:'reliable', tag:'reading', example:'阅读新闻时，要找可靠的资料。'},
-  {level:'Primary 6', type:'word', text:'面对', pinyin:'miàn duì', meaning:'face / confront', tag:'compo', example:'面对挑战，我们要保持冷静。'},
-  {level:'Primary 6', type:'word', text:'挑战', pinyin:'tiǎo zhàn', meaning:'challenge', tag:'compo', example:'这次比赛是一个很大的挑战。'},
-
-  {level:'Composition', type:'sentence', text:'突然，一阵刺耳的声音传来。', pinyin:'tū rán, yī zhèn cì ěr de shēng yīn chuán lái.', meaning:'Suddenly, a sharp sound was heard.', tag:'compo', example:'Use for story opening or turning point.'},
-  {level:'Composition', type:'sentence', text:'我心里七上八下，不知道该怎么办。', pinyin:'wǒ xīn lǐ qī shàng bā xià, bù zhī dào gāi zěn me bàn.', meaning:'I felt very uneasy and did not know what to do.', tag:'compo', example:'Use for nervousness.'},
-  {level:'Composition', type:'sentence', text:'经过这件事，我明白了诚实的重要。', pinyin:'jīng guò zhè jiàn shì, wǒ míng bai le chéng shí de zhòng yào.', meaning:'After this incident, I understood the importance of honesty.', tag:'compo', example:'Useful ending sentence.'},
-  {level:'Composition', type:'sentence', text:'我暗暗下定决心，以后一定要更加努力。', pinyin:'wǒ àn àn xià dìng jué xīn, yǐ hòu yí dìng yào gèng jiā nǔ lì.', meaning:'I secretly made up my mind to work harder in future.', tag:'compo', example:'Useful reflection sentence.'},
-  {level:'Oral', type:'sentence', text:'我认为我们应该多为别人着想。', pinyin:'wǒ rèn wéi wǒ men yīng gāi duō wèi bié rén zhuó xiǎng.', meaning:'I think we should be more considerate of others.', tag:'oral', example:'Good for opinion questions.'},
-  {level:'Oral', type:'sentence', text:'这能提醒我们注意安全。', pinyin:'zhè néng tí xǐng wǒ men zhù yì ān quán.', meaning:'This can remind us to pay attention to safety.', tag:'oral', example:'Good for picture discussion.'}
+const WORDS = [
+  {
+    "level": "Primary 1",
+    "text": "雨衣",
+    "pinyin": "yǔ yī",
+    "meaning": "raincoat",
+    "example": "下雨了，我穿上雨衣。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "书包",
+    "pinyin": "shū bāo",
+    "meaning": "school bag",
+    "example": "我的书包很重。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "同学",
+    "pinyin": "tóng xué",
+    "meaning": "classmate",
+    "example": "我和同学一起读书。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "朋友",
+    "pinyin": "péng you",
+    "meaning": "friend",
+    "example": "他是我的好朋友。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "老师",
+    "pinyin": "lǎo shī",
+    "meaning": "teacher",
+    "example": "老师教我们华文。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "学校",
+    "pinyin": "xué xiào",
+    "meaning": "school",
+    "example": "我每天去学校。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "今天",
+    "pinyin": "jīn tiān",
+    "meaning": "today",
+    "example": "今天的天气很好。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "早上",
+    "pinyin": "zǎo shang",
+    "meaning": "morning",
+    "example": "早上，我向妈妈说早安。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "回家",
+    "pinyin": "huí jiā",
+    "meaning": "go home",
+    "example": "放学后，我回家。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "喜欢",
+    "pinyin": "xǐ huān",
+    "meaning": "like",
+    "example": "我喜欢读故事书。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "开心",
+    "pinyin": "kāi xīn",
+    "meaning": "happy",
+    "example": "我收到礼物，觉得很开心。"
+  },
+  {
+    "level": "Primary 1",
+    "text": "看书",
+    "pinyin": "kàn shū",
+    "meaning": "read a book",
+    "example": "我喜欢在家看书。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "身体",
+    "pinyin": "shēn tǐ",
+    "meaning": "body / health",
+    "example": "我们要照顾自己的身体。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "干净",
+    "pinyin": "gān jìng",
+    "meaning": "clean",
+    "example": "教室变得很干净。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "收拾",
+    "pinyin": "shōu shi",
+    "meaning": "tidy up",
+    "example": "我把书桌收拾好。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "衣服",
+    "pinyin": "yī fu",
+    "meaning": "clothes",
+    "example": "妈妈帮妹妹洗衣服。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "眼睛",
+    "pinyin": "yǎn jing",
+    "meaning": "eyes",
+    "example": "看书时要保护眼睛。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "因为",
+    "pinyin": "yīn wèi",
+    "meaning": "because",
+    "example": "因为下雨，我们留在课室里。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "所以",
+    "pinyin": "suǒ yǐ",
+    "meaning": "so / therefore",
+    "example": "我生病了，所以没有上学。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "庆祝",
+    "pinyin": "qìng zhù",
+    "meaning": "celebrate",
+    "example": "我们一起庆祝生日。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "故事",
+    "pinyin": "gù shi",
+    "meaning": "story",
+    "example": "老师给我们讲故事。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "最喜欢",
+    "pinyin": "zuì xǐ huān",
+    "meaning": "like the most",
+    "example": "我最喜欢华文课。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "帮忙",
+    "pinyin": "bāng máng",
+    "meaning": "help",
+    "example": "我在家帮妈妈的忙。"
+  },
+  {
+    "level": "Primary 2",
+    "text": "谢谢",
+    "pinyin": "xiè xie",
+    "meaning": "thank you",
+    "example": "别人帮我时，我会说谢谢。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "希望",
+    "pinyin": "xī wàng",
+    "meaning": "hope",
+    "example": "我希望明天不会下雨。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "失望",
+    "pinyin": "shī wàng",
+    "meaning": "disappointed",
+    "example": "比赛输了，他有点失望。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "努力",
+    "pinyin": "nǔ lì",
+    "meaning": "work hard",
+    "example": "只要努力，就会有进步。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "进步",
+    "pinyin": "jìn bù",
+    "meaning": "improve",
+    "example": "他的华文有很大的进步。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "习惯",
+    "pinyin": "xí guàn",
+    "meaning": "habit",
+    "example": "早睡早起是好习惯。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "复习",
+    "pinyin": "fù xí",
+    "meaning": "revise",
+    "example": "考试前，我会复习课文。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "认真",
+    "pinyin": "rèn zhēn",
+    "meaning": "serious / attentive",
+    "example": "她认真地完成作业。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "准时",
+    "pinyin": "zhǔn shí",
+    "meaning": "punctual",
+    "example": "我们要准时到校。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "突然",
+    "pinyin": "tū rán",
+    "meaning": "suddenly",
+    "example": "突然，一阵大风吹来。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "原来",
+    "pinyin": "yuán lái",
+    "meaning": "it turns out",
+    "example": "原来是弟弟把门打开了。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "邻居",
+    "pinyin": "lín jū",
+    "meaning": "neighbour",
+    "example": "我们的邻居很友善。"
+  },
+  {
+    "level": "Primary 3",
+    "text": "安全",
+    "pinyin": "ān quán",
+    "meaning": "safety",
+    "example": "过马路时要注意安全。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "责任",
+    "pinyin": "zé rèn",
+    "meaning": "responsibility",
+    "example": "照顾宠物是一种责任。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "诚实",
+    "pinyin": "chéng shí",
+    "meaning": "honest",
+    "example": "诚实是很重要的品德。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "惭愧",
+    "pinyin": "cán kuì",
+    "meaning": "ashamed",
+    "example": "我想起自己的错误，感到很惭愧。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "后悔",
+    "pinyin": "hòu huǐ",
+    "meaning": "regret",
+    "example": "我后悔没有听妈妈的话。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "提醒",
+    "pinyin": "tí xǐng",
+    "meaning": "remind",
+    "example": "爸爸提醒我要带水壶。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "阻止",
+    "pinyin": "zǔ zhǐ",
+    "meaning": "stop / prevent",
+    "example": "我马上阻止弟弟乱跑。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "保护",
+    "pinyin": "bǎo hù",
+    "meaning": "protect",
+    "example": "我们要保护环境。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "环境",
+    "pinyin": "huán jìng",
+    "meaning": "environment",
+    "example": "干净的环境让人舒服。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "解决",
+    "pinyin": "jiě jué",
+    "meaning": "solve",
+    "example": "我们一起想办法解决问题。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "原因",
+    "pinyin": "yuán yīn",
+    "meaning": "reason",
+    "example": "老师问他迟到的原因。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "经过",
+    "pinyin": "jīng guò",
+    "meaning": "process / after passing",
+    "example": "经过这件事，我学会了诚实。"
+  },
+  {
+    "level": "Primary 4",
+    "text": "终于",
+    "pinyin": "zhōng yú",
+    "meaning": "finally",
+    "example": "经过努力，我终于成功了。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "体谅",
+    "pinyin": "tǐ liàng",
+    "meaning": "be considerate",
+    "example": "我们要体谅父母的辛苦。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "坚持",
+    "pinyin": "jiān chí",
+    "meaning": "persist",
+    "example": "他坚持练习，成绩进步了。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "珍惜",
+    "pinyin": "zhēn xī",
+    "meaning": "treasure",
+    "example": "我们要珍惜和家人相处的时间。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "信任",
+    "pinyin": "xìn rèn",
+    "meaning": "trust",
+    "example": "诚实能建立信任。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "沟通",
+    "pinyin": "gōu tōng",
+    "meaning": "communicate",
+    "example": "良好的沟通可以减少误会。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "误会",
+    "pinyin": "wù huì",
+    "meaning": "misunderstanding",
+    "example": "解释清楚后，误会解开了。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "压力",
+    "pinyin": "yā lì",
+    "meaning": "pressure",
+    "example": "考试前，有些同学会感到压力。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "鼓励",
+    "pinyin": "gǔ lì",
+    "meaning": "encourage",
+    "example": "妈妈的鼓励让我更有信心。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "自信",
+    "pinyin": "zì xìn",
+    "meaning": "confidence",
+    "example": "多练习可以增加自信。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "参加",
+    "pinyin": "cān jiā",
+    "meaning": "participate",
+    "example": "我参加了学校的比赛。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "活动",
+    "pinyin": "huó dòng",
+    "meaning": "activity",
+    "example": "这个活动很有意义。"
+  },
+  {
+    "level": "Primary 5",
+    "text": "意义",
+    "pinyin": "yì yì",
+    "meaning": "meaning / significance",
+    "example": "帮助别人是一件有意义的事。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "承担",
+    "pinyin": "chéng dān",
+    "meaning": "bear / take responsibility",
+    "example": "我们要勇于承担责任。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "克服",
+    "pinyin": "kè fú",
+    "meaning": "overcome",
+    "example": "他克服困难，完成了任务。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "困难",
+    "pinyin": "kùn nan",
+    "meaning": "difficulty",
+    "example": "遇到困难时，不要轻易放弃。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "贡献",
+    "pinyin": "gòng xiàn",
+    "meaning": "contribute",
+    "example": "每个人都可以为社会作出贡献。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "社会",
+    "pinyin": "shè huì",
+    "meaning": "society",
+    "example": "我们应该关心社会上的需要。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "科技",
+    "pinyin": "kē jì",
+    "meaning": "technology",
+    "example": "科技改变了我们的生活。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "网络",
+    "pinyin": "wǎng luò",
+    "meaning": "internet",
+    "example": "使用网络时要注意安全。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "沉迷",
+    "pinyin": "chén mí",
+    "meaning": "be addicted / absorbed",
+    "example": "我们不应该沉迷电子游戏。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "判断",
+    "pinyin": "pàn duàn",
+    "meaning": "judge / decide",
+    "example": "我们要学会判断信息是否可靠。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "可靠",
+    "pinyin": "kě kào",
+    "meaning": "reliable",
+    "example": "阅读新闻时，要找可靠的资料。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "面对",
+    "pinyin": "miàn duì",
+    "meaning": "face / confront",
+    "example": "面对挑战，我们要保持冷静。"
+  },
+  {
+    "level": "Primary 6",
+    "text": "挑战",
+    "pinyin": "tiǎo zhàn",
+    "meaning": "challenge",
+    "example": "这次比赛是一个很大的挑战。"
+  }
 ];
 
-let characterCards = [];
+let allCards = [];
 let cards = [];
 let index = 0;
 let revealed = false;
+let startX = 0;
+let startY = 0;
+let moved = false;
+let suppressNextClick = false;
+let storageOK = false;
 
 const $ = (id) => document.getElementById(id);
 
-async function loadCharactersFromOriginalApp() {
+function htmlEscape(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function testStorage() {
   try {
-    const res = await fetch('../index.html', { cache: 'no-store' });
-    const html = await res.text();
-    const marker = 'const flashcardData = ';
-    const start = html.indexOf(marker);
-    if (start < 0) throw new Error('flashcardData not found');
-    const after = html.slice(start + marker.length);
-    const end = after.indexOf('};');
-    if (end < 0) throw new Error('flashcardData end not found');
-    const jsonText = after.slice(0, end + 1);
-    const data = JSON.parse(jsonText);
-    const out = [];
-    Object.entries(data).forEach(([level, lessons]) => {
-      Object.entries(lessons).forEach(([lesson, arr]) => {
-        arr.forEach(x => out.push({ level, lesson, type:'character', text:x.char, pinyin:x.pinyin, meaning:'Character from original MOE HCL character-list app', tag:'character', example:`${level} ${lesson}` }));
-      });
-    });
-    characterCards = out;
+    localStorage.setItem('hclWords:storageTest', '1');
+    localStorage.removeItem('hclWords:storageTest');
+    storageOK = true;
   } catch (e) {
-    characterCards = [];
-    console.warn('Could not load original app characters:', e);
+    storageOK = false;
   }
 }
 
-function levelsForMode() {
-  const s = new Set();
-  STARTER_WORDS.forEach(x => s.add(x.level));
-  characterCards.forEach(x => s.add(x.level.replace(/A|B/g,'').trim()));
-  return ['All', ...Array.from(s).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}))];
+function safeGet(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
 }
 
-function populateLevels() {
-  const level = $('level');
-  level.innerHTML = levelsForMode().map(x => `<option value="${x}">${x}</option>`).join('');
+function safeSet(key, value) {
+  try { localStorage.setItem(key, value); storageOK = true; } catch (e) { storageOK = false; }
 }
 
-function normalizeLevel(x) { return (x || '').replace(/A|B/g,'').trim(); }
+function progressKey(card) {
+  return `hclWords:${$('child').value}:${card.level}:${card.text}`;
+}
 
-function uniqueWordsByText(items) {
+function appKey(name) {
+  return `hclWords:app:${name}`;
+}
+
+function uniqueWords(items) {
   const seen = new Set();
   return items.filter(item => {
     const key = String(item.text || '').trim();
@@ -226,100 +659,212 @@ function uniqueWordsByText(items) {
   });
 }
 
+function populateLevels() {
+  const levels = ['All', ...Array.from(new Set(WORDS.map(w => w.level))).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}))];
+  $('level').innerHTML = levels.map(l => `<option value="${l}">${l}</option>`).join('');
+}
 
-function buildCards() {
-  const mode = $('mode').value;
+function restoreSelections() {
+  const child = safeGet(appKey('child'));
+  const level = safeGet(appKey('level'));
+  if (child && Array.from($('child').options).some(o => o.value === child)) $('child').value = child;
+  if (level && Array.from($('level').options).some(o => o.value === level)) $('level').value = level;
+}
+
+function saveSelections() {
+  safeSet(appKey('child'), $('child').value);
+  safeSet(appKey('level'), $('level').value);
+}
+
+function buildCards(preferredIndex = 0) {
+  saveSelections();
   const level = $('level').value;
-  const tag = $('tag').value;
-  const q = $('search').value.trim().toLowerCase();
-  let pool = [];
-  if (mode === 'characters') pool = characterCards;
-  else if (mode === 'sentences') pool = STARTER_WORDS.filter(x => x.type === 'sentence');
-  else if (mode === 'mixed') pool = [...characterCards, ...STARTER_WORDS];
-  else pool = STARTER_WORDS.filter(x => x.type === 'word');
-
-  cards = pool.filter(x => {
-    const levelOk = level === 'All' || x.level === level || normalizeLevel(x.level) === level;
-    const tagOk = tag === 'all' || x.tag === tag || (mode === 'characters' && tag === 'all');
-    const hay = `${x.text} ${x.pinyin || ''} ${x.meaning || ''} ${x.example || ''}`.toLowerCase();
-    const qOk = !q || hay.includes(q);
-    return levelOk && tagOk && qOk;
-  });
-  index = Math.min(index, Math.max(cards.length - 1, 0));
+  allCards = uniqueWords(WORDS).filter(w => level === 'All' || w.level === level);
+  cards = allCards.filter(w => safeGet(progressKey(w)) !== 'known');
+  index = Math.min(Math.max(preferredIndex, 0), Math.max(cards.length - 1, 0));
   revealed = false;
   render();
 }
 
-function progressKey(card) { return `hclWords:${$('child').value}:${card.type}:${card.level}:${card.text}`; }
-function mark(v, moveNext = false) { if (!cards.length) return; localStorage.setItem(progressKey(cards[index]), v); if (moveNext) { next(1); } else { renderList(); renderKnownList(); renderStats(); render(); } }
-function knownCount() { return cards.filter(c => localStorage.getItem(progressKey(c)) === 'known').length; }
+function knownCount() {
+  return allCards.filter(c => safeGet(progressKey(c)) === 'known').length;
+}
 
 function renderStats() {
-  const originalStatus = characterCards.length ? `${characterCards.length} original character cards loaded` : 'Original character list not loaded yet';
-  $('stats').textContent = `${cards.length} cards shown | ${knownCount()} known for ${$('child').value} | ${originalStatus} | starter word/phrase cards: ${STARTER_WORDS.length}`;
+  const status = storageOK ? 'progress saved on this device' : 'progress NOT saved: browser storage blocked/private';
+  $('stats').textContent = `${cards.length} cards left · ${knownCount()} known for ${$('child').value} · ${allCards.length} total in this level · ${status}`;
 }
 
 function render() {
   renderStats();
   const card = $('card');
-  if (!cards.length) {
-    card.innerHTML = '<div class="meaning">No cards found. Try All level / All filter.</div>';
+
+  if (!allCards.length) {
+    card.innerHTML = '<div class="meaning">No words found for this level.</div>';
     $('list').innerHTML = '';
-    $('knownList').innerHTML = '';
+    renderKnownList();
     return;
   }
+
+  if (!cards.length) {
+    card.innerHTML = '<div class="meaning">All words in this level are marked as known.<br><br>Open Known words below to move any word back to practice.</div>';
+    $('list').innerHTML = '<div class="item">No active practice cards. Known words are hidden from practice.</div>';
+    renderKnownList();
+    return;
+  }
+
   const c = cards[index];
-  const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
-  const bigClass = c.type === 'character' ? 'frontText' : 'wordText';
+  const known = safeGet(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
+  card.className = 'card';
   card.innerHTML = `
-    <span class="badge">${index + 1} / ${cards.length} · ${c.level}${c.lesson ? ' · ' + c.lesson : ''} · ${c.type} · ${known}</span>
-    <div class="${bigClass}">${c.text}</div>
-    ${revealed ? `<div class="pinyin">${c.pinyin || ''}</div><div class="meaning">${c.meaning || ''}</div><div class="example">${c.example || ''}</div>` : '<div class="meaning">Tap Reveal / Space</div>'}
+    <div id="swipeFeedback" class="swipeFeedback"></div>
+    <span class="badge">${index + 1} / ${cards.length} · ${htmlEscape(c.level)} · ${known}</span>
+    <div class="wordStage"><div class="wordText">${htmlEscape(c.text)}</div></div>
+    <div class="answerSlot">
+      ${revealed ? `<div class="pinyin">${htmlEscape(c.pinyin)}</div><div class="meaning">${htmlEscape(c.meaning)}</div><div class="example">${htmlEscape(c.example)}</div>` : ''}
+    </div>
   `;
   renderList();
 }
 
 function renderList() {
-  $('list').innerHTML = cards.slice(0, 80).map((c) => {
-    const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓' : '';
-    return `<div class="item"><b>${c.text}</b> ${known}<br><small>${c.pinyin || ''}</small><br><small>${c.meaning || ''}</small></div>`;
-  }).join('') + (cards.length > 80 ? `<div class="item">+ ${cards.length - 80} more cards</div>` : '');
+  $('list').innerHTML = cards.map(c => `
+    <div class="item">
+      <b>${htmlEscape(c.text)}</b><br>
+      <small>${htmlEscape(c.pinyin)}</small><br>
+      <small>${htmlEscape(c.meaning)}</small>
+    </div>`).join('') || '<div class="item">No active practice cards.</div>';
   renderKnownList();
 }
 
 function renderKnownList() {
-  const known = cards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
-  $('knownList').innerHTML = known.length ? known.map(c => `<div class="item"><b>${c.text}</b> ✓<br><small>${c.pinyin || ''}</small><br><small>${c.meaning || ''}</small></div>`).join('') : '<div class="item">No known cards yet for this child/filter.</div>';
+  const known = allCards.filter(c => safeGet(progressKey(c)) === 'known');
+  window.__knownCardsForButtons = known;
+  $('knownList').innerHTML = known.length ? known.map((c, i) => `
+    <div class="item">
+      <b>${htmlEscape(c.text)}</b> ✓<br>
+      <small>${htmlEscape(c.pinyin)}</small><br>
+      <small>${htmlEscape(c.meaning)}</small><br>
+      <button class="miniBtn unknownBtn" data-known-index="${i}">Unknown / practise again</button>
+    </div>`).join('') : '<div class="item">No known words yet for this child and level.</div>';
 }
 
-function next(delta) { if (!cards.length) return; index = (index + delta + cards.length) % cards.length; revealed = false; render(); }
-function shuffle() { for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; } index = 0; revealed = false; render(); }
+function next(delta) {
+  if (!cards.length) return;
+  index = (index + delta + cards.length) % cards.length;
+  revealed = false;
+  render();
+}
+
+function mark(value) {
+  if (!cards.length) return;
+  const current = cards[index];
+  safeSet(progressKey(current), value);
+  if (value === 'known') {
+    buildCards(index);
+  } else {
+    next(1);
+  }
+}
+
+function animateDecision(value) {
+  if (!cards.length) return;
+  const card = $('card');
+  const feedback = $('swipeFeedback');
+  const isKnown = value === 'known';
+  if (feedback) {
+    feedback.textContent = isKnown ? 'I know this' : 'I need to revise this again';
+    feedback.className = `swipeFeedback show ${isKnown ? 'known' : 'again'}`;
+  }
+  card.classList.add(isKnown ? 'swipe-right' : 'swipe-left');
+  suppressNextClick = true;
+  setTimeout(() => {
+    mark(value);
+    setTimeout(() => suppressNextClick = false, 80);
+  }, 230);
+}
+
+function shuffle() {
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  index = 0;
+  revealed = false;
+  render();
+}
 
 $('prev').onclick = () => next(-1);
 $('next').onclick = () => next(1);
 $('flip').onclick = () => { revealed = !revealed; render(); };
-$('card').onclick = () => { revealed = !revealed; render(); };
-$('know').onclick = () => mark('known', true);
+$('know').onclick = () => animateDecision('known');
 $('shuffle').onclick = shuffle;
-['child','level'].forEach(id => $(id).addEventListener('input', () => buildCards(0)));
-document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') mark('known', true); if (e.key === 'ArrowLeft') mark('again', true); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
 
-let touchStartX = 0;
-let touchStartY = 0;
+$('card').onclick = (e) => {
+  if (suppressNextClick || moved) { e.preventDefault(); return; }
+  if (!cards.length) return;
+  const rect = $('card').getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  if (x < rect.width / 3) next(-1);
+  else if (x > rect.width * 2 / 3) next(1);
+  else { revealed = !revealed; render(); }
+};
+
 $('card').addEventListener('touchstart', e => {
-  touchStartX = e.changedTouches[0].screenX;
-  touchStartY = e.changedTouches[0].screenY;
-}, { passive: true });
-$('card').addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].screenX - touchStartX;
-  const dy = e.changedTouches[0].screenY - touchStartY;
-  if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.2) {
-    if (dx > 0) mark('known', true);
-    else mark('again', true);
-  }
-}, { passive: true });
+  if (!e.touches.length) return;
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  moved = false;
+}, {passive:true});
 
-(async function init(){ await loadCharactersFromOriginalApp(); populateLevels(); buildCards(); })();
+$('card').addEventListener('touchmove', e => {
+  if (!e.touches.length) return;
+  const dx = e.touches[0].clientX - startX;
+  const dy = e.touches[0].clientY - startY;
+  if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy)) moved = true;
+}, {passive:true});
+
+$('card').addEventListener('touchend', e => {
+  const touch = e.changedTouches && e.changedTouches[0];
+  if (!touch || !moved) return;
+  const dx = touch.clientX - startX;
+  if (Math.abs(dx) > 65) {
+    animateDecision(dx > 0 ? 'known' : 'again');
+  }
+  setTimeout(() => moved = false, 120);
+}, {passive:true});
+
+$('knownList').addEventListener('click', e => {
+  const btn = e.target.closest('.unknownBtn');
+  if (!btn) return;
+  const idx = Number(btn.dataset.knownIndex);
+  const card = (window.__knownCardsForButtons || [])[idx];
+  if (!card) return;
+  safeSet(progressKey(card), 'again');
+  buildCards(index);
+});
+
+['child','level'].forEach(id => $(id).addEventListener('input', () => buildCards(0)));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') next(1);
+  if (e.key === 'ArrowLeft') next(-1);
+  if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); }
+});
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
+(function init() {
+  testStorage();
+  populateLevels();
+  restoreSelections();
+  buildCards(0);
+})();
 </script>
 </body>
 </html>
