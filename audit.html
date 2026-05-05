@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Helper Coverage Audit</title>
+<style>
+body{font-family:Arial,"Noto Sans SC","Microsoft YaHei",sans-serif;background:#f7f7fb;color:#202126;margin:0;padding:24px}main{max-width:980px;margin:0 auto}.panel{background:#fff;border:1px solid #dfe1e8;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.06)}h1{margin:0 0 8px;font-size:30px}.muted{color:#656b78}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.stat{background:#fafafa;border:1px solid #dfe1e8;border-radius:14px;padding:12px}.stat b{display:block;font-size:28px}button{border:0;background:#3159df;color:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;margin:6px 6px 6px 0}button.secondary{background:#fff;color:#202126;border:1px solid #dfe1e8}.chunk{border:1px solid #dfe1e8;border-radius:14px;padding:12px;margin:12px 0;background:#fff}textarea{width:100%;min-height:110px;border:1px solid #dfe1e8;border-radius:12px;padding:10px;font-family:Consolas,monospace;font-size:14px}.ok{color:#17642b;font-weight:700}.bad{color:#9b1c1c;font-weight:700}.status{font-weight:700}</style>
+</head>
+<body>
+<main>
+  <h1>Helper Coverage Audit</h1>
+  <p class="muted">This page checks the actual flashcard source against the helper phrase files. It splits missing characters into chunks of 200 so they can be copied without browser-console truncation.</p>
+  <section class="panel">
+    <div id="status" class="status">Loading audit...</div>
+    <div id="stats" class="stats"></div>
+    <div id="actions"></div>
+  </section>
+  <section id="chunks" class="panel"></section>
+</main>
+<script>
+const DATA_URL='https://raw.githubusercontent.com/edyeo82/chineseflashcard/f8373730fbbb589cc50efa19cd54b736fdf697f6/index.html';
+const HELPER_URLS=['hcl-words/helpers.json','hcl-words/helpers-extra.json','hcl-words/helpers-coverage.json'];
+const $=id=>document.getElementById(id);
+function chineseChars(s){return Array.from(String(s).matchAll(/[\u3400-\u9FFF]/g)).map(m=>m[0]);}
+function q(arr){return '['+arr.map(ch=>`'${ch}'`).join(', ')+']';}
+async function copyText(text,btn){await navigator.clipboard.writeText(text);const old=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=old,900);}
+async function loadJson(url){const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error(`${url}: ${res.status}`);return res.json();}
+async function run(){
+  const html=await fetch(DATA_URL,{cache:'no-store'}).then(r=>r.text());
+  const marker='const flashcardData = ';
+  const start=html.indexOf(marker);
+  const after=html.slice(start+marker.length);
+  const end=after.indexOf('};');
+  if(start<0||end<0)throw new Error('Could not parse flashcardData from source.');
+  const sourceData=JSON.parse(after.slice(0,end+1));
+  const source=[];
+  Object.entries(sourceData).forEach(([level,lessons])=>Object.entries(lessons).forEach(([lesson,arr])=>arr.forEach(x=>source.push(String(x.char||'')))));
+  const sourceChars=[...new Set(source.filter(Boolean))];
+  let helpers=[];
+  for(const url of HELPER_URLS){
+    const arr=await loadJson(url);
+    helpers=helpers.concat(arr);
+  }
+  const helperPhrases=[...new Set(helpers.map(x=>String((x&&x[0])||'')).filter(Boolean))];
+  const covered=new Set(helperPhrases.flatMap(chineseChars));
+  const missing=sourceChars.filter(ch=>!covered.has(ch));
+  window.__helperAudit={sourceCharacters:sourceChars.length,helperPhrases:helperPhrases.length,helperCovered:covered.size,missing};
+  $('status').innerHTML=missing.length?`<span class="bad">Missing helpers: ${missing.length}</span>`:`<span class="ok">100% covered. missing: []</span>`;
+  $('stats').innerHTML=`
+    <div class="stat"><b>${sourceChars.length}</b><span>source characters</span></div>
+    <div class="stat"><b>${helperPhrases.length}</b><span>helper phrases loaded</span></div>
+    <div class="stat"><b>${covered.size}</b><span>unique helper characters</span></div>
+    <div class="stat"><b>${missing.length}</b><span>missing source characters</span></div>`;
+  $('actions').innerHTML=`<button id="copyAll">Copy all missing</button><button id="copyJson" class="secondary">Copy JSON.stringify(missing)</button><button id="copyHelperPrompt" class="secondary">Copy helper-generation prompt</button>`;
+  $('copyAll').onclick=e=>copyText(q(missing),e.target);
+  $('copyJson').onclick=e=>copyText(JSON.stringify(missing),e.target);
+  $('copyHelperPrompt').onclick=e=>copyText('Generate one natural Singapore primary-school-level Chinese helper phrase for each of these characters. Output JSON entries only in the format ["phrase", "", ""]. Do not use single-character fallback. Do not use adjacent-character guessing. Missing characters: '+q(missing),e.target);
+  const chunkSize=200;
+  const chunks=[];
+  for(let i=0;i<missing.length;i+=chunkSize)chunks.push(missing.slice(i,i+chunkSize));
+  $('chunks').innerHTML='<h2>Missing chunks of 200</h2>'+chunks.map((chunk,i)=>`<div class="chunk"><h3>Chunk ${i+1} of ${chunks.length} (${chunk.length})</h3><button data-i="${i}">Copy chunk ${i+1}</button><textarea readonly>${q(chunk)}</textarea></div>`).join('');
+  $('chunks').querySelectorAll('button[data-i]').forEach(btn=>btn.onclick=e=>copyText(q(chunks[Number(btn.dataset.i)]),e.target));
+  console.log('Helper coverage audit', window.__helperAudit);
+}
+run().catch(err=>{$('status').innerHTML='<span class="bad">Audit failed: '+String(err.message||err)+'</span>';console.error(err);});
+</script>
+</body>
+</html>
