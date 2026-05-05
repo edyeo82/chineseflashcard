@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Higher Chinese Word Bank</title>
   <style>
     :root { --bg:#f7f7fb; --card:#fff; --ink:#222; --muted:#666; --line:#ddd; --accent:#3657d8; }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); }
+    html { touch-action: manipulation; }
+    body { margin: 0; font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); touch-action: manipulation; -webkit-text-size-adjust: 100%; }
     header { padding: 18px 14px 10px; text-align: center; }
     h1 { margin: 0 0 6px; font-size: clamp(24px, 5vw, 38px); }
     .subtitle { color: var(--muted); font-size: 14px; max-width: 780px; margin: 0 auto; line-height: 1.45; }
@@ -17,7 +18,13 @@
     label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 4px; }
     select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; }
     .stats { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .card { margin: 16px auto 10px; min-height: 360px; width: min(620px, 94vw); background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 28px 20px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; }
+    .card { position: relative; margin: 16px auto 10px; min-height: 360px; width: min(620px, 94vw); background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 28px 20px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; touch-action: pan-y; -webkit-tap-highlight-color: transparent; transition: transform .24s ease, opacity .24s ease; }
+    .card.swipe-right { transform: translateX(115%) rotate(8deg); opacity: 0; }
+    .card.swipe-left { transform: translateX(-115%) rotate(-8deg); opacity: 0; }
+    .swipeFeedback { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) scale(.94); opacity: 0; z-index: 5; padding: 14px 18px; border-radius: 18px; font-size: clamp(24px, 6vw, 42px); font-weight: 700; white-space: nowrap; pointer-events: none; box-shadow: 0 8px 22px rgba(0,0,0,.15); transition: opacity .12s ease, transform .12s ease; }
+    .swipeFeedback.show { opacity: .96; transform: translate(-50%, -50%) scale(1); }
+    .swipeFeedback.known { background: #eaf8ed; border: 2px solid #7ac98a; color: #17642b; }
+    .swipeFeedback.again { background: #fff0f0; border: 2px solid #e59696; color: #8a2727; }
     .wordStage { min-height: 140px; display: flex; align-items: center; justify-content: center; width: 100%; }
     .answerSlot { min-height: 145px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; }
     .badge { display: inline-block; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; margin-bottom: 16px; }
@@ -28,7 +35,7 @@
     .meaning { margin-top: 12px; font-size: clamp(18px, 4vw, 28px); }
     .example { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: clamp(17px, 3.5vw, 24px); line-height: 1.45; color: #333; }
     .nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 14px 0; }
-    button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 15px; cursor: pointer; }
+    button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 15px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
     button.good { background: #eaf8ed; }
     button.bad { background: #fff0f0; }
@@ -46,7 +53,6 @@
 <body>
   <header>
     <h1>Higher Chinese Word Bank</h1>
-    <p class="subtitle">A words-only companion app for your existing character flashcards. It uses the original character list as a reference and underlines only characters introduced in the same selected Primary level.</p>
   </header>
 
   <main class="wrap">
@@ -67,7 +73,7 @@
       <button id="again" class="bad">Practise again & Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
-    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this and remove from deck. Swipe left = practise again. Underlined characters are from the same Primary level in the original character list. After the last active card, it returns to the start.</div>
+    <div class="hint">Tap left side = previous. Tap right side = next. Tap centre = reveal. Swipe right = I know this. Swipe left = I need to revise this again. Known cards disappear from practice.</div>
 
     <section class="panel">
       <details>
@@ -276,6 +282,7 @@ function render() {
   const c = cards[index];
   const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
   card.innerHTML = `
+    <div id="swipeFeedback" class="swipeFeedback"></div>
     <span class="badge">${index + 1} / ${cards.length} · ${c.level} · word · ${known}</span>
     <div class="wordStage"><div class="wordText">${renderUnderlinedWord(c.text, c.level)}</div></div>
     <div class="answerSlot">
@@ -313,6 +320,23 @@ function makeUnknown(card) {
 
 function next(delta) { if (!cards.length) return; index = (index + delta + cards.length) % cards.length; revealed = false; render(); }
 function shuffle() { for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; } index = 0; revealed = false; render(); }
+function animateDecision(value) {
+  if (!cards.length) return;
+  const cardEl = $('card');
+  const feedback = $('swipeFeedback');
+  const isKnown = value === 'known';
+  if (feedback) {
+    feedback.textContent = isKnown ? 'I know this' : 'I need to revise this again';
+    feedback.className = `swipeFeedback ${isKnown ? 'known' : 'again'} show`;
+  }
+  cardEl.classList.remove('swipe-right', 'swipe-left');
+  void cardEl.offsetWidth;
+  cardEl.classList.add(isKnown ? 'swipe-right' : 'swipe-left');
+  setTimeout(() => {
+    mark(value, true);
+    cardEl.classList.remove('swipe-right', 'swipe-left');
+  }, 260);
+}
 
 $('prev').onclick = () => next(-1);
 $('next').onclick = () => next(1);
@@ -326,8 +350,8 @@ $('card').onclick = (e) => {
   else if (x > rect.width * 2 / 3) next(1);
   else { revealed = !revealed; render(); }
 };
-$('know').onclick = () => mark('known', true);
-$('again').onclick = () => mark('again', true);
+$('know').onclick = () => animateDecision('known');
+$('again').onclick = () => animateDecision('again');
 $('shuffle').onclick = shuffle;
 
 $('knownList').addEventListener('click', e => {
@@ -337,7 +361,7 @@ $('knownList').addEventListener('click', e => {
   makeUnknown((window.__knownCardsForButtons || [])[idx]);
 });
 ['child','level'].forEach(id => $(id).addEventListener('input', () => buildCards(0)));
-document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') mark('known', true); if (e.key === 'ArrowLeft') mark('again', true); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') animateDecision('known'); if (e.key === 'ArrowLeft') animateDecision('again'); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
 
 let touchStartX = 0;
 let touchStartY = 0;
@@ -351,11 +375,18 @@ $('card').addEventListener('touchend', e => {
   const dy = e.changedTouches[0].screenY - touchStartY;
   if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.2) {
     suppressNextClick = true;
-    if (dx > 0) mark('known', true);
-    else mark('again', true);
+    if (dx > 0) animateDecision('known');
+    else animateDecision('again');
     setTimeout(() => { suppressNextClick = false; }, 250);
   }
 }, { passive: true });
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
 
 (async function init(){ await loadCharactersFromOriginalApp(); populateLevels(); buildCards(); })();
 </script>
