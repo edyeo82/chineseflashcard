@@ -4,58 +4,120 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Higher Chinese Word Bank</title>
-  <!-- hcl-words v13 clean rebuild: words-only, no mode/filter/search -->
+  <!-- hcl-words v15 friendly toolbar -->
   <style>
-    :root { --bg:#f7f7fb; --card:#fff; --ink:#222; --muted:#666; --line:#ddd; --accent:#3657d8; }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; touch-action: manipulation; -webkit-text-size-adjust: 100%; }
-    body { font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); }
-    header { padding: 22px 12px 10px; text-align: center; }
-    h1 { margin: 0; font-size: clamp(28px, 5vw, 46px); line-height: 1.05; }
-    .wrap { width: min(760px, 94vw); margin: 0 auto 28px; }
-    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; box-shadow: 0 6px 18px rgba(0,0,0,.04); }
-    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
-    label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 5px; }
-    select { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; background: #fff; }
-    .stats { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.45; }
-    .card { position: relative; margin: 18px auto 12px; min-height: 360px; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 26px 18px; box-shadow: 0 10px 26px rgba(0,0,0,.07); cursor: pointer; user-select: none; touch-action: pan-y; -webkit-tap-highlight-color: transparent; transition: transform .24s ease, opacity .24s ease; overflow: hidden; }
-    .card.swipe-right { transform: translateX(115%) rotate(8deg); opacity: 0; }
-    .card.swipe-left { transform: translateX(-115%) rotate(-8deg); opacity: 0; }
-    .swipeFeedback { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) scale(.94); opacity: 0; z-index: 5; padding: 14px 18px; border-radius: 18px; font-size: clamp(22px, 5.5vw, 40px); font-weight: 700; white-space: nowrap; pointer-events: none; box-shadow: 0 8px 22px rgba(0,0,0,.15); transition: opacity .12s ease, transform .12s ease; }
-    .swipeFeedback.show { opacity: .96; transform: translate(-50%, -50%) scale(1); }
-    .swipeFeedback.known { background: #eaf8ed; border: 2px solid #7ac98a; color: #17642b; }
-    .swipeFeedback.again { background: #fff0f0; border: 2px solid #e59696; color: #8a2727; }
-    .badge { display: inline-block; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; margin-bottom: 16px; }
-    .wordStage { min-height: 145px; display: flex; align-items: center; justify-content: center; width: 100%; }
-    .wordText { font-size: clamp(54px, 14vw, 110px); line-height: 1.08; font-weight: 700; }
-    .answerSlot { min-height: 145px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; }
-    .pinyin { margin-top: 12px; font-size: clamp(24px, 5vw, 42px); color: var(--accent); }
-    .meaning { margin-top: 10px; font-size: clamp(18px, 4vw, 28px); }
-    .example { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: clamp(17px, 3.5vw, 23px); line-height: 1.45; color: #333; }
-    .nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 12px 0; }
-    button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 15px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-    button.good { background: #eaf8ed; }
-    .hint { text-align: center; color: var(--muted); font-size: 13px; margin: 4px auto 10px; line-height: 1.4; }
-    .list { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
-    .item { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; line-height: 1.35; }
-    .item b { font-size: 22px; }
-    .note { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.45; }
-    details { margin-top: 12px; }
-    summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
-    .miniBtn { margin-top: 8px; padding: 6px 10px; font-size: 13px; border-radius: 10px; background:#fff0f0; }
-    @media (max-width: 560px) {
-      header { padding-top: 16px; }
-      .controls { grid-template-columns: 1fr 1fr; }
-      .card { min-height: 330px; }
-      .nav button { padding: 10px 12px; }
+    :root {
+      --bg:#f7f7fb; --card:#fff; --ink:#1d1d22; --muted:#6a6b75; --line:#dedfe6;
+      --accent:#3159df; --accent-soft:#ecf1ff; --good:#1f8f42; --good-soft:#ecf8ef;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; min-height:100%; touch-action:manipulation; -webkit-text-size-adjust:100%; }
+    body { font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif; background:var(--bg); color:var(--ink); }
+    header { padding:20px 12px 10px; text-align:center; }
+    h1 { margin:0; font-size:clamp(28px, 5vw, 46px); line-height:1.05; }
+    .wrap { width:min(780px, 94vw); margin:0 auto 34px; }
+    .panel { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:16px 18px; box-shadow:var(--shadow); }
+    .controls { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; }
+    label { display:block; font-size:12px; color:var(--muted); margin:0 0 6px; }
+    select {
+      width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:14px;
+      font-size:16px; background:#fff; color:var(--ink);
+    }
+    .stats { margin-top:12px; color:var(--muted); font-size:13px; line-height:1.45; }
+
+    .card {
+      position:relative; margin:18px auto 14px; min-height:370px; width:100%;
+      background:var(--card); border:1px solid var(--line); border-radius:28px;
+      display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+      text-align:center; padding:26px 22px; box-shadow:var(--shadow);
+      cursor:pointer; user-select:none; touch-action:pan-y; -webkit-tap-highlight-color:transparent;
+      transition:transform .22s ease, opacity .22s ease;
+      overflow:hidden;
+    }
+    .badge {
+      display:inline-block; padding:6px 12px; border-radius:999px; border:1px solid var(--line);
+      color:var(--muted); background:#fff; font-size:12px; margin-bottom:18px;
+    }
+    .wordStage { min-height:145px; width:100%; display:flex; align-items:center; justify-content:center; }
+    .wordText { font-size:clamp(54px, 14vw, 110px); line-height:1.05; font-weight:700; letter-spacing:.02em; }
+    .answerSlot { min-height:145px; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; }
+    .pinyin { margin-top:12px; font-size:clamp(24px, 5vw, 42px); color:var(--accent); }
+    .meaning { margin-top:10px; font-size:clamp(18px, 4vw, 28px); }
+    .example { margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); font-size:clamp(17px, 3.5vw, 23px); line-height:1.45; color:#333; max-width:90%; }
+
+    .navArrow {
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:54px; height:94px; border:none; background:transparent; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; color:#b5b7c3;
+      font-size:42px; line-height:1; z-index:3; border-radius:18px;
+      transition:background .12s ease, color .12s ease, transform .12s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .navArrow:hover, .navArrow:active { background:rgba(0,0,0,.045); color:#666; }
+    .navArrow.left { left:8px; }
+    .navArrow.right { right:8px; }
+
+    .swipeFeedback {
+      position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(.95);
+      opacity:0; z-index:4; pointer-events:none; padding:12px 16px; border-radius:16px;
+      font-size:clamp(24px, 6vw, 40px); font-weight:700; white-space:nowrap;
+      box-shadow:0 8px 22px rgba(0,0,0,.15); transition:opacity .12s ease, transform .12s ease;
+    }
+    .swipeFeedback.show { opacity:.95; transform:translate(-50%, -50%) scale(1); }
+    .swipeFeedback.known { background:#eaf8ed; color:#17642b; border:2px solid #7ac98a; }
+    .swipeFeedback.again { background:#fff0f0; color:#8a2727; border:2px solid #e59696; }
+
+    .toolbar {
+      display:flex; flex-direction:column; align-items:center; gap:10px; margin:2px auto 12px;
+    }
+    .toolbarRow { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; width:100%; }
+    .segmented {
+      display:inline-flex; background:#fff; border:1px solid var(--line); border-radius:18px;
+      padding:6px; box-shadow:var(--shadow); gap:6px;
+    }
+    .uiBtn {
+      border:none; background:transparent; color:var(--ink); cursor:pointer;
+      border-radius:14px; min-height:56px; padding:10px 16px;
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      font-size:15px; font-weight:600; -webkit-tap-highlight-color:transparent;
+      transition:background .12s ease, transform .08s ease, color .12s ease;
+    }
+    .uiBtn:active { transform:scale(.98); }
+    .uiBtn:hover { background:#f6f7fb; }
+    .uiBtn .icon { font-size:18px; line-height:1; }
+    .uiBtn.primary { background:var(--accent); color:#fff; min-width:128px; box-shadow:0 6px 16px rgba(49,89,223,.22); }
+    .uiBtn.primary:hover { background:#2b50cb; }
+    .uiBtn.ghost { border:1px solid var(--line); background:#fff; box-shadow:var(--shadow); }
+    .uiBtn.success {
+      background:var(--good-soft); color:#145a2a; border:1px solid #cfe9d6;
+      min-width:210px; box-shadow:0 6px 16px rgba(31,143,66,.12);
+    }
+    .smallNote { text-align:center; color:var(--muted); font-size:13px; line-height:1.4; }
+
+    details { margin-top:12px; }
+    summary { cursor:pointer; font-weight:700; padding:8px 0; }
+    .list { margin-top:12px; display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:8px; }
+    .item { background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px; line-height:1.35; }
+    .item b { font-size:22px; }
+    .miniBtn {
+      margin-top:8px; padding:6px 10px; font-size:13px; border-radius:10px; cursor:pointer;
+      border:1px solid var(--line); background:#fff0f0;
+    }
+    .note { margin-top:14px; font-size:13px; color:var(--muted); line-height:1.45; }
+
+    @media (max-width:640px) {
+      .controls { grid-template-columns:1fr 1fr; }
+      .card { min-height:340px; padding-left:56px; padding-right:56px; }
+      .navArrow { width:48px; height:88px; font-size:38px; }
+      .segmented { width:100%; justify-content:center; }
+      .segmented .uiBtn { flex:1; min-width:0; padding-left:10px; padding-right:10px; }
+      .uiBtn.success { width:100%; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Higher Chinese Word Bank</h1>
-  </header>
+  <header><h1>Higher Chinese Word Bank</h1></header>
 
   <main class="wrap">
     <section class="panel">
@@ -74,17 +136,25 @@
       <div class="stats" id="stats"></div>
     </section>
 
-    <section id="card" class="card" title="Tap to reveal"></section>
+    <section id="card" class="card" title="Tap to reveal">
+      <button class="navArrow left" id="edgePrev" aria-label="Previous"><span>‹</span></button>
+      <button class="navArrow right" id="edgeNext" aria-label="Next"><span>›</span></button>
+    </section>
 
-    <div class="nav">
-      <button id="prev">Previous</button>
-      <button id="flip" class="primary">Reveal</button>
-      <button id="next">Next</button>
-      <button id="know" class="good">I know this &amp; Next</button>
-      <button id="shuffle">Shuffle</button>
-    </div>
-
-    <div class="hint">Tap left = previous · Tap centre = reveal · Tap right = next · Swipe right = I know this · Swipe left = revise again</div>
+    <section class="toolbar">
+      <div class="toolbarRow">
+        <div class="segmented">
+          <button class="uiBtn" id="prev" aria-label="Previous"><span class="icon">‹</span><span>Previous</span></button>
+          <button class="uiBtn primary" id="flip" aria-label="Reveal"><span class="icon">👁</span><span id="flipLabel">Reveal</span></button>
+          <button class="uiBtn" id="next" aria-label="Next"><span>Next</span><span class="icon">›</span></button>
+        </div>
+      </div>
+      <div class="toolbarRow">
+        <button class="uiBtn success" id="know"><span class="icon">✓</span><span>Know this &amp; remove</span></button>
+        <button class="uiBtn ghost" id="shuffle" aria-label="Shuffle"><span class="icon">↻</span><span>Shuffle</span></button>
+      </div>
+      <div class="smallNote">Swipe right = know · Swipe left = don't know · Tap card centre = reveal</div>
+    </section>
 
     <section class="panel">
       <details>
@@ -611,18 +681,18 @@ let allCards = [];
 let cards = [];
 let index = 0;
 let revealed = false;
+let storageOK = false;
+let suppressClick = false;
+let dragActive = false;
 let startX = 0;
 let startY = 0;
-let moved = false;
-let suppressNextClick = false;
-let storageOK = false;
+let currentDX = 0;
 
 const $ = (id) => document.getElementById(id);
 
 function htmlEscape(value) {
   return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
-
 function testStorage() {
   try {
     localStorage.setItem('hclWords:storageTest', '1');
@@ -632,22 +702,11 @@ function testStorage() {
     storageOK = false;
   }
 }
+function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+function safeSet(key, value) { try { localStorage.setItem(key, value); storageOK = true; } catch (e) { storageOK = false; } }
 
-function safeGet(key) {
-  try { return localStorage.getItem(key); } catch (e) { return null; }
-}
-
-function safeSet(key, value) {
-  try { localStorage.setItem(key, value); storageOK = true; } catch (e) { storageOK = false; }
-}
-
-function progressKey(card) {
-  return `hclWords:${$('child').value}:${card.level}:${card.text}`;
-}
-
-function appKey(name) {
-  return `hclWords:app:${name}`;
-}
+function progressKey(card) { return `hclWords:${$('child').value}:${card.level}:${card.text}`; }
+function appKey(name) { return `hclWords:app:${name}`; }
 
 function uniqueWords(items) {
   const seen = new Set();
@@ -663,14 +722,12 @@ function populateLevels() {
   const levels = ['All', ...Array.from(new Set(WORDS.map(w => w.level))).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}))];
   $('level').innerHTML = levels.map(l => `<option value="${l}">${l}</option>`).join('');
 }
-
 function restoreSelections() {
   const child = safeGet(appKey('child'));
   const level = safeGet(appKey('level'));
   if (child && Array.from($('child').options).some(o => o.value === child)) $('child').value = child;
   if (level && Array.from($('level').options).some(o => o.value === level)) $('level').value = level;
 }
-
 function saveSelections() {
   safeSet(appKey('child'), $('child').value);
   safeSet(appKey('level'), $('level').value);
@@ -695,19 +752,33 @@ function renderStats() {
   $('stats').textContent = `${cards.length} cards left · ${knownCount()} known for ${$('child').value} · ${allCards.length} total in this level · ${status}`;
 }
 
+function updateToolbar() {
+  $('flipLabel').textContent = revealed ? 'Hide' : 'Reveal';
+}
+
 function render() {
   renderStats();
   const card = $('card');
+  updateToolbar();
+
+  const staticArrows = `
+    <button class="navArrow left" id="edgePrev" aria-label="Previous"><span>‹</span></button>
+    <button class="navArrow right" id="edgeNext" aria-label="Next"><span>›</span></button>
+  `;
 
   if (!allCards.length) {
-    card.innerHTML = '<div class="meaning">No words found for this level.</div>';
+    card.style.transform = '';
+    card.innerHTML = staticArrows + '<div class="meaning" style="margin:auto 0;">No words found for this level.</div>';
+    bindEdgeArrows();
     $('list').innerHTML = '';
     renderKnownList();
     return;
   }
 
   if (!cards.length) {
-    card.innerHTML = '<div class="meaning">All words in this level are marked as known.<br><br>Open Known words below to move any word back to practice.</div>';
+    card.style.transform = '';
+    card.innerHTML = staticArrows + '<div class="meaning" style="margin:auto 0;">All words in this level are marked as known.<br><br>Open Known words below to move any word back to practice.</div>';
+    bindEdgeArrows();
     $('list').innerHTML = '<div class="item">No active practice cards. Known words are hidden from practice.</div>';
     renderKnownList();
     return;
@@ -715,8 +786,9 @@ function render() {
 
   const c = cards[index];
   const known = safeGet(progressKey(c)) === 'known' ? '✓ known' : 'not marked';
-  card.className = 'card';
+  card.style.transform = '';
   card.innerHTML = `
+    ${staticArrows}
     <div id="swipeFeedback" class="swipeFeedback"></div>
     <span class="badge">${index + 1} / ${cards.length} · ${htmlEscape(c.level)} · ${known}</span>
     <div class="wordStage"><div class="wordText">${htmlEscape(c.text)}</div></div>
@@ -724,7 +796,15 @@ function render() {
       ${revealed ? `<div class="pinyin">${htmlEscape(c.pinyin)}</div><div class="meaning">${htmlEscape(c.meaning)}</div><div class="example">${htmlEscape(c.example)}</div>` : ''}
     </div>
   `;
+  bindEdgeArrows();
   renderList();
+}
+
+function bindEdgeArrows() {
+  const prev = $('edgePrev');
+  const nxt = $('edgeNext');
+  if (prev) prev.onclick = (e) => { e.stopPropagation(); next(-1); };
+  if (nxt) nxt.onclick = (e) => { e.stopPropagation(); next(1); };
 }
 
 function renderList() {
@@ -760,28 +840,36 @@ function mark(value) {
   if (!cards.length) return;
   const current = cards[index];
   safeSet(progressKey(current), value);
-  if (value === 'known') {
-    buildCards(index);
-  } else {
-    next(1);
-  }
+  if (value === 'known') buildCards(index);
+  else next(1);
+}
+
+function showFeedback(label, type, alpha=1) {
+  const feedback = $('swipeFeedback');
+  if (!feedback) return;
+  feedback.textContent = label;
+  feedback.className = `swipeFeedback show ${type}`;
+  feedback.style.opacity = Math.max(0.35, Math.min(alpha, 0.96));
+}
+function clearFeedback() {
+  const feedback = $('swipeFeedback');
+  if (!feedback) return;
+  feedback.className = 'swipeFeedback';
+  feedback.style.opacity = '';
 }
 
 function animateDecision(value) {
   if (!cards.length) return;
   const card = $('card');
-  const feedback = $('swipeFeedback');
-  const isKnown = value === 'known';
-  if (feedback) {
-    feedback.textContent = isKnown ? 'I know this' : 'I need to revise this again';
-    feedback.className = `swipeFeedback show ${isKnown ? 'known' : 'again'}`;
-  }
-  card.classList.add(isKnown ? 'swipe-right' : 'swipe-left');
-  suppressNextClick = true;
+  const right = value === 'known';
+  showFeedback(right ? 'Know' : "Don't know", right ? 'known' : 'again', 0.96);
+  card.style.transition = 'transform .22s ease, opacity .22s ease';
+  card.style.transform = `translateX(${right ? 115 : -115}%) rotate(${right ? 8 : -8}deg)`;
+  suppressClick = true;
   setTimeout(() => {
     mark(value);
-    setTimeout(() => suppressNextClick = false, 80);
-  }, 230);
+    suppressClick = false;
+  }, 220);
 }
 
 function shuffle() {
@@ -801,7 +889,8 @@ $('know').onclick = () => animateDecision('known');
 $('shuffle').onclick = shuffle;
 
 $('card').onclick = (e) => {
-  if (suppressNextClick || moved) { e.preventDefault(); return; }
+  if (suppressClick || dragActive) return;
+  if (e.target.closest('.navArrow')) return;
   if (!cards.length) return;
   const rect = $('card').getBoundingClientRect();
   const x = e.clientX - rect.left;
@@ -810,29 +899,52 @@ $('card').onclick = (e) => {
   else { revealed = !revealed; render(); }
 };
 
+function onPointerStart(clientX, clientY) {
+  if (!cards.length) return;
+  dragActive = true;
+  startX = clientX;
+  startY = clientY;
+  currentDX = 0;
+  $('card').style.transition = 'none';
+}
+function onPointerMove(clientX, clientY) {
+  if (!dragActive) return;
+  const dx = clientX - startX;
+  const dy = clientY - startY;
+  if (Math.abs(dx) < Math.abs(dy)) return;
+  currentDX = dx;
+  const card = $('card');
+  const rotate = Math.max(-8, Math.min(8, dx / 22));
+  card.style.transform = `translateX(${dx}px) rotate(${rotate}deg)`;
+  const strength = Math.min(1, Math.abs(dx) / 120);
+  if (dx > 18) showFeedback('Know', 'known', strength);
+  else if (dx < -18) showFeedback("Don't know", 'again', strength);
+  else clearFeedback();
+}
+function onPointerEnd() {
+  if (!dragActive) return;
+  dragActive = false;
+  const dx = currentDX;
+  const card = $('card');
+  card.style.transition = 'transform .18s ease, opacity .18s ease';
+  if (dx > 90) { animateDecision('known'); return; }
+  if (dx < -90) { animateDecision('again'); return; }
+  card.style.transform = '';
+  clearFeedback();
+}
+
 $('card').addEventListener('touchstart', e => {
-  if (!e.touches.length) return;
-  startX = e.touches[0].clientX;
-  startY = e.touches[0].clientY;
-  moved = false;
+  if (e.target.closest('.navArrow')) return;
+  const t = e.touches[0];
+  onPointerStart(t.clientX, t.clientY);
 }, {passive:true});
-
 $('card').addEventListener('touchmove', e => {
-  if (!e.touches.length) return;
-  const dx = e.touches[0].clientX - startX;
-  const dy = e.touches[0].clientY - startY;
-  if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy)) moved = true;
+  if (!dragActive) return;
+  const t = e.touches[0];
+  onPointerMove(t.clientX, t.clientY);
 }, {passive:true});
-
-$('card').addEventListener('touchend', e => {
-  const touch = e.changedTouches && e.changedTouches[0];
-  if (!touch || !moved) return;
-  const dx = touch.clientX - startX;
-  if (Math.abs(dx) > 65) {
-    animateDecision(dx > 0 ? 'known' : 'again');
-  }
-  setTimeout(() => moved = false, 120);
-}, {passive:true});
+$('card').addEventListener('touchend', () => onPointerEnd(), {passive:true});
+$('card').addEventListener('touchcancel', () => onPointerEnd(), {passive:true});
 
 $('knownList').addEventListener('click', e => {
   const btn = e.target.closest('.unknownBtn');
@@ -845,7 +957,6 @@ $('knownList').addEventListener('click', e => {
 });
 
 ['child','level'].forEach(id => $(id).addEventListener('input', () => buildCards(0)));
-
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') next(1);
   if (e.key === 'ArrowLeft') next(-1);
