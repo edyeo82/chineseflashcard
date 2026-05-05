@@ -4,12 +4,12 @@ A companion practice app for the main Chinese flashcard site.
 
 ## Current behaviour
 
-- The practice deck is made of character cards from the main Chinese flashcard app.
+- Practice cards are original character cards from the main Chinese flashcard app.
 - Level and Lesson follow the main app's structure.
-- Examples are shown on the reveal side of a character card.
-- Examples are not separate swipe cards.
-- Examples unlock only when all their Chinese characters have already appeared in the main list up to the selected lesson.
-- Known-character progress is saved separately for each child on the current browser/device.
+- Examples are shown on reveal, not as separate swipe cards.
+- Each child now has separate known-character progress using child-specific storage keys.
+- Each child also remembers their own last selected level and lesson.
+- Mobile select controls listen to both `change` and `input`, so switching children rebuilds the deck reliably on iPhone/iPad.
 
 ## Controls
 
