@@ -33,6 +33,9 @@
     .item { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; line-height: 1.35; }
     .item b { font-size: 22px; }
     .note { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.45; }
+    details { margin-top: 16px; }
+    summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
+    .hint { text-align: center; color: var(--muted); font-size: 13px; margin-top: -4px; }
     @media (max-width: 760px) { .controls { grid-template-columns: 1fr 1fr; } .controls .wide { grid-column: 1 / -1; } .card { min-height: 330px; } }
   </style>
 </head>
@@ -59,14 +62,21 @@
       <button id="prev">Previous</button>
       <button id="flip" class="primary">Reveal</button>
       <button id="next">Next</button>
-      <button id="know" class="good">I know this</button>
-      <button id="again" class="bad">Practise again</button>
+      <button id="know" class="good">I know this & Next</button>
+      <button id="again" class="bad">Practise again & Next</button>
       <button id="shuffle">Shuffle</button>
     </div>
+    <div class="hint">Swipe right = I know this. Swipe left = practise again. Both move to the next card. After the last card, it returns to the start.</div>
 
     <section class="panel">
-      <b>Current list</b>
-      <div class="list" id="list"></div>
+      <details>
+        <summary>Known words for selected child</summary>
+        <div class="list" id="knownList"></div>
+      </details>
+      <details>
+        <summary>Current list</summary>
+        <div class="list" id="list"></div>
+      </details>
       <p class="note"><b>Source note:</b> Character mode attempts to read your original <code>../index.html</code> flashcardData, whose help text says the characters were parsed from the MOE Primary Higher Chinese character-list PDF. The word bank below is a starter syllabus-aligned layer, not an official complete MOE textbook vocabulary list yet. Add school spelling lists / textbook words as you collect them.</p>
     </section>
   </main>
@@ -229,7 +239,7 @@ function buildCards() {
 }
 
 function progressKey(card) { return `hclWords:${$('child').value}:${card.type}:${card.level}:${card.text}`; }
-function mark(v) { if (!cards.length) return; localStorage.setItem(progressKey(cards[index]), v); renderList(); renderStats(); render(); }
+function mark(v, moveNext = false) { if (!cards.length) return; localStorage.setItem(progressKey(cards[index]), v); if (moveNext) { next(1); } else { renderList(); renderKnownList(); renderStats(); render(); } }
 function knownCount() { return cards.filter(c => localStorage.getItem(progressKey(c)) === 'known').length; }
 
 function renderStats() {
@@ -243,6 +253,7 @@ function render() {
   if (!cards.length) {
     card.innerHTML = '<div class="meaning">No cards found. Try All level / All filter.</div>';
     $('list').innerHTML = '';
+    $('knownList').innerHTML = '';
     return;
   }
   const c = cards[index];
@@ -261,6 +272,12 @@ function renderList() {
     const known = localStorage.getItem(progressKey(c)) === 'known' ? '✓' : '';
     return `<div class="item"><b>${c.text}</b> ${known}<br><small>${c.pinyin || ''}</small><br><small>${c.meaning || ''}</small></div>`;
   }).join('') + (cards.length > 80 ? `<div class="item">+ ${cards.length - 80} more cards</div>` : '');
+  renderKnownList();
+}
+
+function renderKnownList() {
+  const known = cards.filter(c => localStorage.getItem(progressKey(c)) === 'known');
+  $('knownList').innerHTML = known.length ? known.map(c => `<div class="item"><b>${c.text}</b> ✓<br><small>${c.pinyin || ''}</small><br><small>${c.meaning || ''}</small></div>`).join('') : '<div class="item">No known cards yet for this child/filter.</div>';
 }
 
 function next(delta) { if (!cards.length) return; index = (index + delta + cards.length) % cards.length; revealed = false; render(); }
@@ -270,11 +287,26 @@ $('prev').onclick = () => next(-1);
 $('next').onclick = () => next(1);
 $('flip').onclick = () => { revealed = !revealed; render(); };
 $('card').onclick = () => { revealed = !revealed; render(); };
-$('know').onclick = () => mark('known');
-$('again').onclick = () => mark('again');
+$('know').onclick = () => mark('known', true);
+$('again').onclick = () => mark('again', true);
 $('shuffle').onclick = shuffle;
 ['child','level','mode','tag','search'].forEach(id => $(id).addEventListener('input', buildCards));
-document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') next(1); if (e.key === 'ArrowLeft') next(-1); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') mark('known', true); if (e.key === 'ArrowLeft') mark('again', true); if (e.key === ' ') { e.preventDefault(); revealed = !revealed; render(); } });
+
+let touchStartX = 0;
+let touchStartY = 0;
+$('card').addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+$('card').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+    if (dx > 0) mark('known', true);
+    else mark('again', true);
+  }
+}, { passive: true });
 
 (async function init(){ await loadCharactersFromOriginalApp(); populateLevels(); buildCards(); })();
 </script>
