@@ -1,8 +1,8 @@
 # Higher Chinese Word Bank
 
-A companion web app for the existing Chinese Flashcards site. It helps Primary School pupils practise Higher Chinese characters, words, phrases and useful sentence patterns.
+A words-only companion web app for the existing Chinese Flashcards site. It helps Primary School pupils practise Higher Chinese words and phrases, while using the original character flashcard list as a reference.
 
-The original Chinese Flashcards app focuses mainly on single characters. This companion app adds a word-bank layer so that children can practise vocabulary and phrases useful for reading, oral and composition.
+The original Chinese Flashcards app focuses mainly on single characters. This companion app focuses on vocabulary. Characters inside each word that appear in the original character list are underlined, so the child can see which syllabus characters are being used inside the word.
 
 ## Site URL
 
@@ -22,12 +22,8 @@ https://edyeo82.github.io/chineseflashcard/hcl-words/index.html
 
 1. Choose the child profile.
 2. Choose the level.
-3. Choose the mode:
-   - Words / 词语
-   - Characters / 字
-   - Sentences / 句子
-   - Mixed review
-4. Look at the Chinese word, phrase or character on the card.
+3. Look at the Chinese word or phrase on the card.
+4. Underlined characters are characters found in the original character flashcard list.
 5. Tap the centre of the card to reveal or hide the pinyin, English meaning and example sentence.
 
 ## Card controls
@@ -55,6 +51,6 @@ Progress is saved locally in the browser using localStorage. It is not uploaded 
 
 ## Source note
 
-The character mode attempts to reuse the original app's `../index.html` `flashcardData`. The original app says its characters were parsed from the MOE Primary Higher Chinese character-list PDF.
+This app attempts to reuse the original app's `../index.html` `flashcardData` as a reference character list. The original app says its characters were parsed from the MOE Primary Higher Chinese character-list PDF.
 
-The word bank is a starter vocabulary and sentence layer. It is not yet a complete official textbook vocabulary list. To improve coverage, add actual school spelling lists, textbook lesson vocabulary and useful composition/oral phrases over time.
+The word bank is a starter vocabulary layer. It is not yet a complete official textbook vocabulary list. To improve coverage, add actual school spelling lists and textbook lesson vocabulary over time.
