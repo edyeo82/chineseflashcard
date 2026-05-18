@@ -24,7 +24,9 @@
         html = html.replace('</body>', `
 <script>
 (function(){
+  var lastProfileKey=null;
   function childId(){var child=document.getElementById('child');return child?child.value.replace(/[^a-zA-Z0-9]+/g,'_'):'Child_1';}
+  function safeKey(v){return String(v||'').replace(/[^a-zA-Z0-9_.@-]+/g,'_');}
   function profileInfo(){
     var s=document.getElementById('saveStatus');
     var text=s?s.textContent:'';
@@ -34,11 +36,12 @@
     if(a) return {mode:'auth',label:a[1],copyLabel:'signed-in account'};
     return {mode:'guest',label:'Guest',copyLabel:'Guest'};
   }
+  function profileKey(){var p=profileInfo();return p.mode+':'+safeKey(p.username||p.label||'guest');}
   function tuneModeUi(){
     if(document.getElementById('compactProfileCss')) return;
     var style=document.createElement('style');
     style.id='compactProfileCss';
-    style.textContent='.saveGrid{grid-template-columns:.72fr 1.28fr!important;gap:8px!important}.modeCard{padding:9px!important}.modeTitle{font-size:14px!important;margin-bottom:4px!important}.modeText{display:none!important}.buttonRow{gap:6px!important;margin-top:7px!important}.uiBtn{min-height:40px!important;padding:8px 11px!important;font-size:14px!important}#guestCard{display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;gap:8px!important}#guestCard .modeTitle{margin:0!important}#guestCard .buttonRow{margin:0!important;justify-content:flex-end!important}#usernameCard{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important;align-items:end!important}#usernameCard .modeTitle{grid-column:1/-1!important;margin:0!important}#usernameInput{grid-column:1!important;min-width:0!important;padding:9px 10px!important;font-size:14px!important}#usernameCard .buttonRow{grid-column:2!important;margin:0!important;align-self:stretch!important}#usernameMode{height:100%!important;min-width:54px!important}#authCard{grid-column:1/-1!important;display:block!important}#authCard .modeTitle{margin:0 0 7px 0!important}#authCard .authFields{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:7px!important;margin:0!important}#emailInput,#passwordInput{min-width:0!important;padding:10px!important;font-size:14px!important}#authCard .buttonRow{margin-top:7px!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:7px!important}#googleSignIn{order:1}#emailCreate{order:2}#emailSignIn{order:3}#signOutBtn{order:4}#googleSignIn,#emailSignIn,#emailCreate,#signOutBtn{min-width:0!important;white-space:nowrap!important}.statusLine{display:none!important}.warning{font-size:12px!important;margin-top:8px!important;padding:8px!important}#profileBadge{position:absolute;right:18px;bottom:12px;z-index:5;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:0;padding:0;font-size:11px;font-weight:500;color:#8c929f;opacity:.85;text-align:right;pointer-events:none}#copyPanel{margin-top:18px!important;background:#fff!important;border:1px solid #dfe1e8!important;border-radius:14px!important;padding:0!important;box-shadow:0 8px 24px rgba(0,0,0,.04)!important;text-align:left!important}#copyPanel summary{padding:12px 14px!important;font-size:14px!important;color:#656b78!important}#copyPanel .copyInner{padding:0 14px 14px!important;font-size:13px!important;line-height:1.4!important}@media(max-width:420px){.saveGrid{grid-template-columns:.68fr 1.32fr!important;gap:8px!important}.modeCard{padding:8px!important}.uiBtn{font-size:12px!important;padding:8px 4px!important}#guestMode{min-width:46px!important}#usernameMode{min-width:48px!important}#emailInput,#passwordInput{padding:9px!important;font-size:14px!important}#authCard .buttonRow{grid-template-columns:repeat(4,1fr)!important;gap:5px!important}#profileBadge{right:14px;bottom:10px;max-width:52%;font-size:10px}}';
+    style.textContent='.saveGrid{grid-template-columns:.72fr 1.28fr!important;gap:8px!important}.modeCard{padding:9px!important}.modeTitle{font-size:14px!important;margin-bottom:4px!important}.modeText{display:none!important}.buttonRow{gap:6px!important;margin-top:7px!important}.uiBtn{min-height:40px!important;padding:8px 11px!important;font-size:14px!important}#guestCard{display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;gap:8px!important}#guestCard .modeTitle{margin:0!important}#guestCard .buttonRow{margin:0!important;justify-content:flex-end!important}#usernameCard{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important;align-items:end!important}#usernameCard .modeTitle{grid-column:1/-1!important;margin:0!important}#usernameInput{grid-column:1!important;min-width:0!important;padding:9px 10px!important;font-size:14px!important}#usernameCard .buttonRow{grid-column:2!important;margin:0!important;align-self:stretch!important}#usernameMode{height:100%!important;min-width:54px!important}#authCard{grid-column:1/-1!important;display:block!important}#authCard .modeTitle{margin:0 0 7px 0!important}#authCard .authFields{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:7px!important;margin:0!important}#emailInput,#passwordInput{min-width:0!important;padding:10px!important;font-size:14px!important}#authCard .buttonRow{margin-top:7px!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:7px!important}#googleSignIn{order:1}#emailCreate{order:2}#emailSignIn{order:3}#signOutBtn{order:4}#googleSignIn,#emailSignIn,#emailCreate,#signOutBtn{min-width:0!important;white-space:normal!important}.statusLine{display:none!important}.warning{font-size:12px!important;margin-top:8px!important;padding:8px!important}#profileBadge{position:absolute;right:18px;bottom:12px;z-index:5;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:0;padding:0;font-size:11px;font-weight:500;color:#8c929f;opacity:.85;text-align:right;pointer-events:none}#copyPanel{margin-top:18px!important;background:#fff!important;border:1px solid #dfe1e8!important;border-radius:14px!important;padding:0!important;box-shadow:0 8px 24px rgba(0,0,0,.04)!important;text-align:left!important}#copyPanel summary{padding:12px 14px!important;font-size:14px!important;color:#656b78!important}#copyPanel .copyInner{padding:0 14px 14px!important;font-size:13px!important;line-height:1.4!important}@media(max-width:420px){.saveGrid{grid-template-columns:.68fr 1.32fr!important;gap:8px!important}.modeCard{padding:8px!important}.uiBtn{font-size:12px!important;padding:8px 4px!important}#guestMode{min-width:46px!important}#usernameMode{min-width:48px!important}#emailInput,#passwordInput{padding:9px!important;font-size:14px!important}#authCard .buttonRow{grid-template-columns:repeat(4,1fr)!important;gap:5px!important}#profileBadge{right:14px;bottom:10px;max-width:52%;font-size:10px}}';
     document.head.appendChild(style);
   }
   function relabel(){
@@ -53,10 +56,48 @@
     var gg=document.getElementById('googleSignIn'); if(gg) gg.textContent='Google';
     var cr=document.getElementById('emailCreate'); if(cr) cr.textContent='Create';
     var em=document.getElementById('emailSignIn'); if(em) em.textContent='Sign in';
-    var so=document.getElementById('signOutBtn'); if(so) so.textContent='Out';
+    var so=document.getElementById('signOutBtn'); if(so) so.textContent='Sign out';
+  }
+  function resetSelectionsToFirst(){
+    var child=document.getElementById('child'), level=document.getElementById('level'), lesson=document.getElementById('lesson');
+    if(!child||!level||!lesson||!level.options.length) return false;
+    var childNames=Array.from(child.options).map(function(o){return o.value;});
+    var firstChild=childNames[0]||'Child 1';
+    var firstLevel=level.options[0].value;
+    child.value=firstChild;
+    level.value=firstLevel;
+    level.dispatchEvent(new Event('input',{bubbles:true}));
+    level.dispatchEvent(new Event('change',{bubbles:true}));
+    setTimeout(function(){
+      var lessonNow=document.getElementById('lesson');
+      var firstLesson=((lessonNow.options[1]||lessonNow.options[0]||{}).value)||'All Lessons';
+      childNames.forEach(function(name){
+        var id=name.replace(/[^a-zA-Z0-9]+/g,'_');
+        localStorage.setItem('hcl:app:'+id+':level',firstLevel);
+        localStorage.setItem('hcl:app:'+id+':lesson',firstLesson);
+      });
+      localStorage.setItem('hcl:app:child',firstChild);
+      child.value=firstChild;
+      level.value=firstLevel;
+      lessonNow.value=firstLesson;
+      lessonNow.dispatchEvent(new Event('input',{bubbles:true}));
+      lessonNow.dispatchEvent(new Event('change',{bubbles:true}));
+    },80);
+    return true;
+  }
+  function maybeInitNewProfile(){
+    var key=profileKey();
+    if(!lastProfileKey){lastProfileKey=key;localStorage.setItem('hcl:profileSeen:'+key,'1');return;}
+    if(key===lastProfileKey) return;
+    var marker='hcl:profileSeen:'+key;
+    if(!localStorage.getItem(marker)){
+      if(!resetSelectionsToFirst()) return;
+      localStorage.setItem(marker,'1');
+    }
+    lastProfileKey=key;
   }
   function updateProfileBadge(){
-    tuneModeUi(); relabel();
+    tuneModeUi(); relabel(); maybeInitNewProfile();
     var card=document.getElementById('card'); if(!card) return;
     var badge=document.getElementById('profileBadge');
     if(!badge){badge=document.createElement('div');badge.id='profileBadge';card.appendChild(badge);}
