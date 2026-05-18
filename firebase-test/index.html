@@ -21,6 +21,59 @@
       })
       .then(html => {
         html = html.replace('<head>', '<head><base href="../">');
+        html = html.replace('</body>', `
+<script>
+(function(){
+  function esc(v){return String(v||'').replace(/[&<>]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];});}
+  function childId(){
+    var child=document.getElementById('child');
+    return child ? child.value.replace(/[^a-zA-Z0-9]+/g,'_') : 'Child_1';
+  }
+  function storageInfo(){
+    var status=document.getElementById('saveStatus');
+    var text=status ? status.textContent : '';
+    var child=childId();
+    var username=text.match(/Simple username \\(([^)]+)\\)/);
+    if(username){
+      return {
+        title:'Current store: Firestore username store',
+        path:'publicUsers / '+username[1]+' / children / '+child+' / progress',
+        note:'Shared cloud progress. Anyone who uses the same username can change this progress.'
+      };
+    }
+    if(/Signed in as/i.test(text)){
+      return {
+        title:'Current store: Firestore private signed-in store',
+        path:'users / <your Firebase Auth UID> / children / '+child+' / progress',
+        note:'Private cloud progress. Find the exact UID under Firebase Authentication → Users.'
+      };
+    }
+    return {
+      title:'Current store: Guest local browser store',
+      path:'Browser localStorage only. No Firestore document is written.',
+      note:'This progress stays on this device/browser only.'
+    };
+  }
+  function updateStorePanel(){
+    var savePanel=document.getElementById('savePanel');
+    if(!savePanel) return;
+    var panel=document.getElementById('storePathPanel');
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id='storePathPanel';
+      panel.style.cssText='margin-top:10px;border:2px solid #3159df;background:#eef2ff;border-radius:14px;padding:11px 13px;font-size:13px;line-height:1.45;text-align:left';
+      savePanel.appendChild(panel);
+    }
+    var info=storageInfo();
+    panel.innerHTML='<b>'+esc(info.title)+'</b><br><code style="display:block;margin-top:5px;white-space:normal;word-break:break-word;background:#fff;border:1px solid #dfe1e8;border-radius:8px;padding:6px">'+esc(info.path)+'</code><div style="margin-top:6px;color:#656b78">'+esc(info.note)+'</div>';
+  }
+  setInterval(updateStorePanel,800);
+  document.addEventListener('change',updateStorePanel,true);
+  document.addEventListener('click',function(){setTimeout(updateStorePanel,100);},true);
+  updateStorePanel();
+})();
+<\/script>
+</body>`);
         document.open();
         document.write(html);
         document.close();
