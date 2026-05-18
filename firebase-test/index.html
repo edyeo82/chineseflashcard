@@ -24,32 +24,43 @@
         html = html.replace('</body>', `
 <script>
 (function(){
-  function esc(v){return String(v||'').replace(/[&<>]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];});}
-  function childId(){var child=document.getElementById('child');return child ? child.value.replace(/[^a-zA-Z0-9]+/g,'_') : 'Child_1';}
+  function childId(){var child=document.getElementById('child');return child?child.value.replace(/[^a-zA-Z0-9]+/g,'_'):'Child_1';}
   function profileInfo(){
-    var status=document.getElementById('saveStatus');
-    var text=status ? status.textContent : '';
-    var username=text.match(/Simple username \\(([^)]+)\\)/);
-    if(username) return {mode:'username',username:username[1],label:username[1],copyLabel:'username '+username[1]};
-    var signed=text.match(/Signed in as (.+?)\. Private cloud progress/i);
-    if(signed) return {mode:'auth',label:signed[1],copyLabel:'signed-in account'};
+    var s=document.getElementById('saveStatus');
+    var text=s?s.textContent:'';
+    var u=text.match(/Simple username \\(([^)]+)\\)/);
+    if(u) return {mode:'username',username:u[1],label:u[1],copyLabel:'username '+u[1]};
+    var a=text.match(/Signed in as (.+?)\\. Private cloud progress/i);
+    if(a) return {mode:'auth',label:a[1],copyLabel:'signed-in account'};
     return {mode:'guest',label:'Guest',copyLabel:'Guest'};
   }
-  function addCompactCss(){
+  function tuneModeUi(){
     if(document.getElementById('compactProfileCss')) return;
     var style=document.createElement('style');
     style.id='compactProfileCss';
-    style.textContent='.saveGrid{grid-template-columns:1fr 1fr!important}.modeCard{padding:10px!important}.modeText{font-size:12px!important}.modeTitle{font-size:14px}.buttonRow{gap:6px!important}.uiBtn{min-height:42px!important;padding:8px 11px!important;font-size:14px!important}#authCard{grid-column:1/-1}.statusLine{font-size:12px!important;margin-top:8px!important}#profileBadge{position:absolute;right:18px;bottom:12px;z-index:5;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:0;padding:0;font-size:11px;font-weight:500;color:#8c929f;opacity:.85;text-align:right;pointer-events:none}@media(max-width:420px){.saveGrid{grid-template-columns:1fr 1fr!important;gap:8px!important}.modeCard{padding:9px!important}.modeText{display:none}.uiBtn{font-size:13px!important;padding:8px!important}#usernameInput{padding:9px!important;font-size:14px!important}#profileBadge{right:14px;bottom:10px;max-width:52%;font-size:10px}}';
+    style.textContent='.saveGrid{grid-template-columns:1fr 1fr!important;gap:8px!important}.modeCard{padding:10px!important}.modeTitle{font-size:14px!important;margin-bottom:3px!important}.modeText{font-size:12px!important;line-height:1.25!important}.buttonRow{gap:6px!important;margin-top:7px!important}.uiBtn{min-height:40px!important;padding:8px 11px!important;font-size:14px!important}#authCard{grid-column:1/-1}.statusLine{display:none!important}.warning{font-size:12px!important;margin-top:8px!important;padding:8px!important}#profileBadge{position:absolute;right:18px;bottom:12px;z-index:5;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:0;padding:0;font-size:11px;font-weight:500;color:#8c929f;opacity:.85;text-align:right;pointer-events:none}#copyPanel{margin-top:18px!important;background:#fff!important;border:1px solid #dfe1e8!important;border-radius:14px!important;padding:0!important;box-shadow:0 8px 24px rgba(0,0,0,.04)!important;text-align:left!important}#copyPanel summary{padding:12px 14px!important;font-size:14px!important;color:#656b78!important}#copyPanel .copyInner{padding:0 14px 14px!important;font-size:13px!important;line-height:1.4!important}@media(max-width:420px){.saveGrid{grid-template-columns:1fr 1fr!important;gap:8px!important}.modeCard{padding:9px!important}.modeText{display:none!important}.uiBtn{font-size:13px!important;padding:8px!important}#usernameInput{padding:9px!important;font-size:14px!important}#profileBadge{right:14px;bottom:10px;max-width:52%;font-size:10px}}';
     document.head.appendChild(style);
   }
+  function relabel(){
+    var g=document.querySelector('#guestCard .modeTitle'); if(g) g.textContent='Guest';
+    var gt=document.querySelector('#guestCard .modeText'); if(gt) gt.textContent='This device only';
+    var gb=document.getElementById('guestMode'); if(gb) gb.textContent='Use';
+    var u=document.querySelector('#usernameCard .modeTitle'); if(u) u.textContent='Username';
+    var ut=document.querySelector('#usernameCard .modeText'); if(ut) ut.textContent='Sync by shared name';
+    var ub=document.getElementById('usernameMode'); if(ub) ub.textContent='Use';
+    var a=document.querySelector('#authCard .modeTitle'); if(a) a.textContent='Sign in';
+    var at=document.querySelector('#authCard .modeText'); if(at) at.textContent='Private sync';
+    var em=document.getElementById('emailSignIn'); if(em) em.textContent='Email';
+  }
   function updateProfileBadge(){
-    addCompactCss();
-    var card=document.getElementById('card');if(!card) return;
+    tuneModeUi(); relabel();
+    var card=document.getElementById('card'); if(!card) return;
     var badge=document.getElementById('profileBadge');
     if(!badge){badge=document.createElement('div');badge.id='profileBadge';card.appendChild(badge);}
     badge.textContent=profileInfo().label;
   }
   window.__hclStorageInfo=profileInfo;
+  window.__hclChildId=childId;
   setInterval(updateProfileBadge,500);
   document.addEventListener('change',updateProfileBadge,true);
   document.addEventListener('click',function(){setTimeout(updateProfileBadge,80);},true);
@@ -61,21 +72,21 @@ import { getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 import { getFirestore, collection, doc, getDocs, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 function esc(v){return String(v||'').replace(/[&<>]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[ch];});}
-function childId(){var child=document.getElementById('child'); return child ? child.value.replace(/[^a-zA-Z0-9]+/g,'_') : 'Child_1';}
+function childId(){return window.__hclChildId?window.__hclChildId():'Child_1';}
 function progressDocId(level,lesson,char){return [level,lesson,char].map(function(x){return encodeURIComponent(String(x));}).join('__');}
 function usernameOk(v){return /^[a-zA-Z0-9_-]{3,30}$/.test(v||'');}
 function getFirebase(){var apps=getApps(); if(!apps.length) return null; var app=apps[0]; return {auth:getAuth(app), db:getFirestore(app)};}
 function parseLocalKey(key){var prefix='hcl:progress:v31:'+childId()+':';if(!key.startsWith(prefix)) return null;var rest=key.slice(prefix.length);var parts=rest.split(':');if(parts.length<3) return null;return {level:parts[0],lesson:parts[1],char:parts.slice(2).join(':')};}
 function localProgressRows(){var rows=[];for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i);var p=parseLocalKey(key);if(!p) continue;var status=localStorage.getItem(key);if(status!=='known'&&status!=='again') continue;rows.push({id:progressDocId(p.level,p.lesson,p.char),status:status,known:status==='known',char:p.char,pinyin:'',level:p.level,lesson:p.lesson,child:childId()});}return rows;}
-function currentCloudTarget(){var fb=getFirebase();if(!fb) return null;var info=window.__hclStorageInfo ? window.__hclStorageInfo() : {mode:'guest'};if(info.mode==='username'&&usernameOk(info.username)) return {label:info.copyLabel,path:['publicUsers',info.username,'children',childId(),'progress'],auth:fb.auth,db:fb.db};if(info.mode==='auth'&&fb.auth.currentUser) return {label:fb.auth.currentUser.email||'signed-in account',path:['users',fb.auth.currentUser.uid,'children',childId(),'progress'],auth:fb.auth,db:fb.db};return null;}
+function currentCloudTarget(){var fb=getFirebase();if(!fb) return null;var info=window.__hclStorageInfo?window.__hclStorageInfo():{mode:'guest'};if(info.mode==='username'&&usernameOk(info.username)) return {label:info.copyLabel,path:['publicUsers',info.username,'children',childId(),'progress'],auth:fb.auth,db:fb.db};if(info.mode==='auth'&&fb.auth.currentUser) return {label:fb.auth.currentUser.email||'signed-in account',path:['users',fb.auth.currentUser.uid,'children',childId(),'progress'],auth:fb.auth,db:fb.db};return null;}
 async function writeRows(db,path,rows){for(const row of rows){await setDoc(doc(db,...path,row.id),Object.assign({},row,{updatedAt:serverTimestamp(),copiedAt:serverTimestamp()}),{merge:true});}}
 async function readRows(db,path){const snap=await getDocs(collection(db,...path));const rows=[];snap.forEach(function(d){rows.push(Object.assign({id:d.id},d.data()||{}));});return rows;}
 function setCopyStatus(msg,bad){var el=document.getElementById('copyStatus');if(el) el.innerHTML=bad?'<span style="color:#9b1c1c;font-weight:700">'+esc(msg)+'</span>':esc(msg);}
 function addCopyPanel(){
-  var savePanel=document.getElementById('savePanel');if(!savePanel||document.getElementById('copyPanel')) return;
-  var panel=document.createElement('div');panel.id='copyPanel';panel.style.cssText='margin-top:10px;border:1px solid #cfe9d6;background:#f7fff9;border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.4;text-align:left';
-  panel.innerHTML='<b>Move / copy progress</b><div style="margin-top:5px;color:#656b78">For moving from Guest to another phone, or from username to a real account.</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:9px"><button class="uiBtn ghost" id="copyGuestToCloud">Copy Guest → current profile</button><button class="uiBtn ghost" id="copyCloudToGuest">Copy current profile → Guest</button></div><div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px"><input id="copyFromUsername" placeholder="Username to import"><button class="uiBtn ghost" id="copyUsernameToAuth">Import to signed-in account</button></div><div id="copyStatus" style="margin-top:8px;color:#656b78">Copies the selected child only.</div>';
-  savePanel.appendChild(panel);
+  var main=document.querySelector('main.wrap'); if(!main||document.getElementById('copyPanel')) return;
+  var panel=document.createElement('details'); panel.id='copyPanel';
+  panel.innerHTML='<summary>Move / copy progress</summary><div class="copyInner"><div style="color:#656b78;margin-bottom:9px">For moving from Guest to another phone, or from username to a real account.</div><div style="display:flex;flex-wrap:wrap;gap:8px"><button class="uiBtn ghost" id="copyGuestToCloud">Copy Guest → current profile</button><button class="uiBtn ghost" id="copyCloudToGuest">Copy current profile → Guest</button></div><div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px"><input id="copyFromUsername" placeholder="Username to import"><button class="uiBtn ghost" id="copyUsernameToAuth">Import to signed-in account</button></div><div id="copyStatus" style="margin-top:8px;color:#656b78">Copies the selected child only.</div></div>';
+  main.appendChild(panel);
   document.getElementById('copyGuestToCloud').onclick=async function(){try{var target=currentCloudTarget();if(!target){setCopyStatus('Choose a username or sign in first, then copy.',true);return;}var rows=localProgressRows();if(!rows.length){setCopyStatus('No Guest progress found for '+childId()+'.',true);return;}setCopyStatus('Copying '+rows.length+' records to '+target.label+'...');await writeRows(target.db,target.path,rows);setCopyStatus('Copied '+rows.length+' records. Reloading...');setTimeout(function(){location.reload();},900);}catch(e){console.error(e);setCopyStatus('Copy failed: '+(e.message||e),true);}};
   document.getElementById('copyCloudToGuest').onclick=async function(){try{var target=currentCloudTarget();if(!target){setCopyStatus('Choose a username or sign in first, then copy.',true);return;}setCopyStatus('Reading '+target.label+' progress...');var rows=await readRows(target.db,target.path);if(!rows.length){setCopyStatus('No cloud progress found for '+target.label+' and '+childId()+'.',true);return;}rows.forEach(function(row){if(!row.level||!row.lesson||!row.char||!row.status) return;localStorage.setItem('hcl:progress:v31:'+childId()+':'+row.level+':'+row.lesson+':'+row.char,row.status);});localStorage.setItem('hcl:saveMode','guest');setCopyStatus('Copied '+rows.length+' records to Guest. Reloading...');setTimeout(function(){location.reload();},900);}catch(e){console.error(e);setCopyStatus('Copy failed: '+(e.message||e),true);}};
   document.getElementById('copyUsernameToAuth').onclick=async function(){try{var fb=getFirebase();if(!fb){setCopyStatus('Firebase is still loading. Try again in a few seconds.',true);return;}var source=(document.getElementById('copyFromUsername').value||'').trim().toLowerCase();if(!usernameOk(source)){setCopyStatus('Username must be 3-30 letters/numbers/_/-.',true);return;}if(!fb.auth.currentUser){setCopyStatus('Sign in first, then import the username.',true);return;}var sourcePath=['publicUsers',source,'children',childId(),'progress'];var destPath=['users',fb.auth.currentUser.uid,'children',childId(),'progress'];setCopyStatus('Importing from '+source+'...');var rows=await readRows(fb.db,sourcePath);if(!rows.length){setCopyStatus('No progress found under '+source+' for '+childId()+'.',true);return;}await writeRows(fb.db,destPath,rows);localStorage.setItem('hcl:saveMode','auth');setCopyStatus('Imported '+rows.length+' records. Reloading...');setTimeout(function(){location.reload();},900);}catch(e){console.error(e);setCopyStatus('Import failed: '+(e.message||e),true);}};
