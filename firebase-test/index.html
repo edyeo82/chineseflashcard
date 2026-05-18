@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Firebase Test - Chinese Flashcards</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f7f7fb;color:#202126;padding:24px;text-align:center}
+    .box{background:#fff;border:1px solid #dfe1e8;border-radius:20px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.06);max-width:520px}
+    .error{color:#9b1c1c;font-weight:700;white-space:pre-wrap;text-align:left}
+  </style>
+</head>
+<body>
+  <div class="box" id="status">Loading Firebase test version...</div>
+  <script>
+    const url = 'https://raw.githubusercontent.com/edyeo82/chineseflashcard/firebase-save-modes/index.html?cacheBust=' + Date.now();
+    fetch(url, { cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) throw new Error('Could not load test version: HTTP ' + r.status);
+        return r.text();
+      })
+      .then(html => {
+        html = html.replace('<head>', '<head><base href="../">');
+        document.open();
+        document.write(html);
+        document.close();
+      })
+      .catch(err => {
+        document.getElementById('status').innerHTML = '<div class="error">' + String(err.message || err).replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])) + '</div>';
+      });
+  </script>
+</body>
+</html>
