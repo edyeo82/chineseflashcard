@@ -10,6 +10,9 @@
 <style id="compactSaveModeCss">
 #savePanel{padding:10px 12px}.saveGrid{grid-template-columns:.7fr 1.3fr!important;gap:8px!important}.modeCard{padding:9px!important}.modeTitle{font-size:14px!important;margin-bottom:4px!important}.modeText,.statusLine{display:none!important}.buttonRow{gap:6px!important;margin-top:7px!important}.uiBtn{min-height:40px!important;padding:8px 11px!important;font-size:14px!important}#guestCard{display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;gap:8px!important}#guestCard .modeTitle{margin:0!important}#guestCard .buttonRow{margin:0!important}#usernameCard{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important;align-items:end!important}#usernameCard .modeTitle{grid-column:1/-1!important;margin:0!important}#usernameInput{grid-column:1!important;min-width:0!important;padding:9px 10px!important;font-size:14px!important}#usernameCard .buttonRow{grid-column:2!important;margin:0!important;align-self:stretch!important}#usernameMode{height:100%!important;min-width:54px!important}#authCard{grid-column:1/-1!important;display:block!important}#authCard .modeTitle{margin:0 0 7px 0!important}#authCard .authFields{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;margin:0!important}#emailInput,#passwordInput{padding:10px!important;font-size:14px!important}#authCard .buttonRow{margin-top:7px!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:7px!important}#googleSignIn{order:1}#emailCreate{order:2}#emailSignIn{order:3}#signOutBtn{order:4}@media(max-width:640px){header{padding-top:8px!important}h1{font-size:22px!important}.saveGrid{grid-template-columns:.68fr 1.32fr!important;gap:8px!important}.modeCard{padding:8px!important}.uiBtn{font-size:12px!important;padding:8px 4px!important}#authCard .buttonRow{gap:5px!important}.warning{font-size:12px!important;margin-top:8px!important;padding:8px!important}}
 </style>
+<style id="childNameCss">
+.childNameBox input{padding:12px 14px}.childNameHint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.25}@media(min-width:641px){.controls{grid-template-columns:1fr 1fr 1fr 1fr!important}}
+</style>
 </head>
 <body>
 <header><h1>Higher Chinese Flashcards</h1></header>
@@ -37,7 +40,7 @@
   <div class="statusLine" id="saveStatus">Save mode: Guest. Progress stays on this browser.</div>
   <div class="warning" id="usernameWarning" hidden>Simple username mode is not private. Do not use real child names, school names, emails, or private notes.</div>
 </section>
-<section class="panel"><div class="controls"><div><label>Child</label><select id="child"><option>Child 1</option><option>Child 2</option><option>Child 3</option><option>Child 4</option><option>Child 5</option></select></div><div><label>Level</label><select id="level"></select></div><div><label>Lesson</label><select id="lesson"></select></div></div></section>
+<section class="panel"><div class="controls"><div><label>Child</label><select id="child"><option value="Child 1">Child 1</option><option value="Child 2">Child 2</option><option value="Child 3">Child 3</option><option value="Child 4">Child 4</option><option value="Child 5">Child 5</option></select></div><div class="childNameBox"><label>Child name</label><input id="childNameInput" placeholder="Optional name" maxlength="40"><div class="childNameHint">Blank = default name</div></div><div><label>Level</label><select id="level"></select></div><div><label>Lesson</label><select id="lesson"></select></div></div></section>
 <section id="card" class="card"></section>
 <section class="toolbar"><div class="toolbarRow"><div class="segmented"><button class="uiBtn" id="prev">‹ Previous</button><button class="uiBtn primary" id="flip">👁 <span id="flipLabel">Reveal</span></button><button class="uiBtn" id="next">Next ›</button></div></div><div class="toolbarRow"><button class="uiBtn success" id="know">✓ Know this &amp; remove</button><button class="uiBtn ghost" id="shuffle">↻ Shuffle</button><button class="uiBtn ghost" id="unshuffle">⇅ Unshuffle</button></div><div class="smallNote">Tap card = reveal · Tap small arrows or buttons = previous / next · Swipe right = know · Swipe left = don’t know</div></section>
 <section class="panel"><details><summary>Known characters for selected child</summary><div class="list" id="knownList"></div></details><details><summary>Current practice characters</summary><div class="list" id="list"></div></details></section>
@@ -143,6 +146,37 @@ bindSelect('lesson',async()=>{isShuffled=false;if(saveMode==='guest')buildCards(
 document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')next(1);if(e.key==='ArrowLeft')next(-1);if(e.key===' '){e.preventDefault();revealed=!revealed;render()}});let lastTouchEnd=0;document.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTouchEnd<=300)e.preventDefault();lastTouchEnd=now},{passive:false});
 onAuthStateChanged(auth,async user=>{currentUser=user;updateSaveUi();if(user&&saveMode==='auth')await loadRemoteProgress();else if(!user&&saveMode==='auth')await switchMode('guest')});
 (async function init(){try{$('usernameInput').value=simpleUsername;updateSaveUi();await loadSource();populateLevels();restoreSelections();remoteReady=saveMode==='guest';if(saveMode==='username'&&usernameOk(simpleUsername))await loadRemoteProgress();else if(saveMode==='auth'&&currentUser)await loadRemoteProgress();else buildCards(0)}catch(e){$('card').innerHTML=`<div class="error" style="margin:auto 0;">${esc(e.message)}</div>`;console.error(e)}})();
+</script>
+<script type="module">
+import { getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+(function(){
+  const slots=['Child 1','Child 2','Child 3','Child 4','Child 5'];
+  const child=document.getElementById('child');
+  const input=document.getElementById('childNameInput');
+  if(!child||!input) return;
+  let names={};
+  let timer=null;
+  function slotId(slot){return String(slot||'Child 1').replace(/[^a-zA-Z0-9]+/g,'_')}
+  function usernameOk(v){return /^[a-zA-Z0-9_-]{3,30}$/.test(v||'')}
+  function mode(){return localStorage.getItem('hcl:saveMode')||'guest'}
+  function simpleUsername(){return (localStorage.getItem('hcl:simpleUsername')||'').trim().toLowerCase()}
+  function appReady(){return getApps()[0]||null}
+  function auth(){const app=appReady();return app?getAuth(app):null}
+  function db(){const app=appReady();return app?getFirestore(app):null}
+  function localKey(slot){return 'hcl:childName:v1:'+slotId(slot)}
+  function profileRef(slot){const m=mode();const database=db();if(!database)return null;const id=slotId(slot);if(m==='username'&&usernameOk(simpleUsername()))return doc(database,'publicUsers',simpleUsername(),'children',id,'profile','meta');const a=auth();if(m==='auth'&&a&&a.currentUser)return doc(database,'users',a.currentUser.uid,'children',id,'profile','meta');return null}
+  function updateDropdown(){Array.from(child.options).forEach((opt,i)=>{const slot=slots[i]||opt.value||opt.textContent;opt.value=slot;opt.textContent=(names[slot]||'').trim()||slot});input.value=(names[child.value]||'').trim()}
+  async function loadNames(){const loaded={};for(const slot of slots){const ref=profileRef(slot);if(ref){try{const snap=await getDoc(ref);const v=snap.exists()?String((snap.data()||{}).displayName||'').trim():'';if(v)loaded[slot]=v}catch(e){console.warn('child name load failed',slot,e)}}else{const v=String(localStorage.getItem(localKey(slot))||'').trim();if(v)loaded[slot]=v}}names=loaded;updateDropdown()}
+  async function saveName(){const slot=child.value;const name=input.value.trim().slice(0,40);if(name)names[slot]=name;else delete names[slot];updateDropdown();const ref=profileRef(slot);if(ref){try{await setDoc(ref,{displayName:name,updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn('child name save failed',e)}}else{if(name)localStorage.setItem(localKey(slot),name);else localStorage.removeItem(localKey(slot))}}
+  child.addEventListener('change',()=>setTimeout(updateDropdown,0));
+  input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(saveName,500)});
+  ['guestMode','usernameMode','googleSignIn','emailSignIn','emailCreate','signOutBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('click',()=>setTimeout(loadNames,900))});
+  setTimeout(loadNames,300);
+  setTimeout(loadNames,1200);
+  try{const a=auth();if(a)onAuthStateChanged(a,()=>setTimeout(loadNames,300))}catch(e){}
+})();
 </script>
 </body>
 </html>
