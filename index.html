@@ -39,6 +39,20 @@
 <section class="toolbar"><div class="toolbarRow"><div class="segmented"><button class="uiBtn" id="prev">‹ Previous</button><button class="uiBtn primary" id="flip">👁 <span id="flipLabel">Reveal</span></button><button class="uiBtn" id="next">Next ›</button></div></div><div class="toolbarRow"><button class="uiBtn success" id="know">✓ Know this &amp; remove</button><button class="uiBtn ghost" id="shuffle">↻ Shuffle</button><button class="uiBtn ghost" id="unshuffle">⇅ Unshuffle</button></div><div class="smallNote">Tap card = reveal · Tap small arrows or buttons = previous / next · Swipe right = know · Swipe left = don’t know</div></section>
 <section class="panel"><details><summary>Known characters for selected child</summary><div class="list" id="knownList"></div></details><details><summary>Current practice characters</summary><div class="list" id="list"></div></details></section>
 </main>
+<script>
+(function(){
+  const main=document.querySelector('main.wrap');
+  const card=document.getElementById('card');
+  const toolbar=document.querySelector('section.toolbar');
+  const controls=document.querySelector('.controls')?.closest('section.panel');
+  const save=document.getElementById('savePanel');
+  if(main&&card&&toolbar&&controls&&save){
+    main.insertBefore(toolbar, main.firstChild);
+    main.insertBefore(card, toolbar);
+    main.insertBefore(controls, save);
+  }
+})();
+</script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
