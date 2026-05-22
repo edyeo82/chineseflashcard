@@ -1,0 +1,4 @@
+const HELPER_OVERRIDE_URL='hcl-words/helper-overrides.json';
+let helperOverrides={};
+async function testLoad(){try{helperOverrides=await fetch(HELPER_OVERRIDE_URL,{cache:'no-store'}).then(r=>r.json())}catch(e){helperOverrides={}}}
+function testExample(c){const ov=helperOverrides[`${c.text}|${c.pinyin}`];return ov||null;}
