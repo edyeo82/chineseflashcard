@@ -41,6 +41,7 @@ jobs:
           node --check tingxie/app-core.js
           node --check tingxie/app-ocr.js
           node --check tingxie/app-ocr-accuracy.js
+          node --check tingxie/app-ocr-region-fix.js
           node --check tingxie/app-ocr-sentence-fix.js
           node --check tingxie/app-camera.js
           node --check tingxie/app-dictation.js
@@ -49,6 +50,7 @@ jobs:
           node --check tingxie/tests/smoke.mjs
           node --check tingxie/tests/ocr-accuracy.mjs
           node --check tingxie/tests/exact-photo-regression.mjs
+          node --check tingxie/tests/measured-pinyin-regression.mjs
           node --check tingxie/tests/live.mjs
 
       - name: Run full browser flow
@@ -59,6 +61,9 @@ jobs:
 
       - name: Run supplied-photo OCR regression
         run: node tingxie/tests/exact-photo-regression.mjs
+
+      - name: Run measured pinyin-box regression
+        run: node tingxie/tests/measured-pinyin-regression.mjs
 
       - name: Upload browser-test evidence
         if: always()
@@ -76,6 +81,9 @@ jobs:
             /tmp/tingxie-exact-photo-pass.png
             /tmp/tingxie-exact-photo-failure.png
             /tmp/tingxie-exact-photo-error.txt
+            /tmp/tingxie-measured-pinyin-pass.png
+            /tmp/tingxie-measured-pinyin-failure.png
+            /tmp/tingxie-measured-pinyin-error.txt
           if-no-files-found: ignore
 
   verify-live-pages:
