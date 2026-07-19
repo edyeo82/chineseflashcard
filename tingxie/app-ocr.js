@@ -1,5 +1,18 @@
 'use strict';
 
+// JSON.parse(null) returns null instead of throwing. On a fresh browser that
+// made loadSettings() read `rate` from null and stopped initialization before
+// the photo and OCR button handlers were attached.
+safeJsonParse = function safeJsonParseWithFallback(value, fallback) {
+  if (value === null || value === undefined || value === '') return fallback;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed === null || parsed === undefined ? fallback : parsed;
+  } catch {
+    return fallback;
+  }
+};
+
 const OCR_SCRIPT_SOURCES = [
   'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',
   'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js'
