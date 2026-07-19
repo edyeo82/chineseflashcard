@@ -1,0 +1,48 @@
+name: Ting Xie OCR regressions
+
+on:
+  pull_request:
+    paths:
+      - 'tingxie/**'
+      - '.github/workflows/tingxie-ocr-regressions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measured-photo-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browser
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk python3
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Check regression syntax
+        run: |
+          node --check tingxie/tests/measured-pinyin-layout.mjs
+          node --check tingxie/tests/exact-photo-regression.mjs
+      - name: Run measured pinyin-box regression
+        run: node tingxie/tests/measured-pinyin-layout.mjs
+      - name: Run supplied-photo OCR-output regression
+        run: node tingxie/tests/exact-photo-regression.mjs
+      - name: Upload measured-photo evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-measured-photo-evidence
+          path: |
+            /tmp/tingxie-measured-pinyin-pass.png
+            /tmp/tingxie-measured-pinyin-failure.png
+            /tmp/tingxie-measured-pinyin-error.txt
+            /tmp/tingxie-exact-photo-pass.png
+            /tmp/tingxie-exact-photo-failure.png
+            /tmp/tingxie-exact-photo-error.txt
+          if-no-files-found: ignore

@@ -20,7 +20,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -40,15 +40,32 @@ jobs:
           node --check tingxie/boot.js
           node --check tingxie/app-core.js
           node --check tingxie/app-ocr.js
+          node --check tingxie/app-ocr-accuracy.js
+          node --check tingxie/app-ocr-region-fix.js
+          node --check tingxie/app-ocr-evidence-fix.js
+          node --check tingxie/app-ocr-trusted-fallback.js
+          node --check tingxie/app-ocr-sentence-fix.js
           node --check tingxie/app-camera.js
           node --check tingxie/app-dictation.js
           node --check tingxie/app-marking.js
           node --check tingxie/app-init.js
           node --check tingxie/tests/smoke.mjs
-          node --check tingxie/tests/live.mjs
+          node --check tingxie/tests/ocr-accuracy-layout.mjs
+          node --check tingxie/tests/exact-photo-regression.mjs
+          node --check tingxie/tests/measured-pinyin-layout.mjs
+          node --check tingxie/tests/live-accuracy-layout.mjs
 
-      - name: Run browser flow
+      - name: Run full browser flow
         run: node tingxie/tests/smoke.mjs
+
+      - name: Run exact OCR accuracy regression
+        run: node tingxie/tests/ocr-accuracy-layout.mjs
+
+      - name: Run supplied-photo OCR regression
+        run: node tingxie/tests/exact-photo-regression.mjs
+
+      - name: Run measured pinyin-box regression
+        run: node tingxie/tests/measured-pinyin-layout.mjs
 
       - name: Upload browser-test evidence
         if: always()
@@ -60,13 +77,22 @@ jobs:
             /tmp/tingxie-smoke-failure.png
             /tmp/tingxie-real-ocr-failure.png
             /tmp/tingxie-smoke-error.txt
+            /tmp/tingxie-accuracy-pass.png
+            /tmp/tingxie-accuracy-failure.png
+            /tmp/tingxie-accuracy-error.txt
+            /tmp/tingxie-exact-photo-pass.png
+            /tmp/tingxie-exact-photo-failure.png
+            /tmp/tingxie-exact-photo-error.txt
+            /tmp/tingxie-measured-pinyin-pass.png
+            /tmp/tingxie-measured-pinyin-failure.png
+            /tmp/tingxie-measured-pinyin-error.txt
           if-no-files-found: ignore
 
   verify-live-pages:
     if: github.event_name == 'push'
     needs: smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Mark public-page verification pending
         uses: actions/github-script@v7
@@ -78,7 +104,7 @@ jobs:
               sha: context.sha,
               state: 'pending',
               context: 'tingxie-live-pages',
-              description: 'Testing the deployed Ting Xie app',
+              description: 'Testing deployed high-accuracy Ting Xie OCR',
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
@@ -98,7 +124,7 @@ jobs:
       - name: Test the public GitHub Pages app
         id: live_test
         continue-on-error: true
-        run: node tingxie/tests/live.mjs
+        run: node tingxie/tests/live-accuracy-layout.mjs
 
       - name: Upload public-page evidence
         if: always()
@@ -123,7 +149,7 @@ jobs:
               sha: context.sha,
               state: passed ? 'success' : 'failure',
               context: 'tingxie-live-pages',
-              description: passed ? 'Deployed photo and OCR-button flow passed' : 'Deployed Ting Xie verification failed',
+              description: passed ? 'Deployed 13-item OCR accuracy flow passed' : 'Deployed Ting Xie accuracy verification failed',
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
