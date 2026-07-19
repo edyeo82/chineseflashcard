@@ -115,6 +115,10 @@ async function installBrowserMocks(context, scenario) {
       }
     }
 
+    Object.defineProperty(window, 'SpeechRecognition', {
+      value: FakeRecognition,
+      configurable: true
+    });
     Object.defineProperty(window, 'webkitSpeechRecognition', {
       value: FakeRecognition,
       configurable: true
