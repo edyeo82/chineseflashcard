@@ -33,13 +33,10 @@ extractPinyinRegions = function extractPinyinRegionsFromPhonePhoto(tsv, imageWid
     const widths = row.map(word => word.width).sort((a, b) => a - b);
     const medianWidth = widths[Math.floor(widths.length / 2)] || 30;
 
-    // Pinyin syllables inside one answer are separated by a small normal-space
-    // gap, while worksheet columns have a noticeably larger gap. The previous
-    // 2.6× median-word threshold was too wide and joined four numbered answers
-    // into one unusable region. This lower adaptive threshold keeps syllables
-    // together but splits worksheet columns in both the supplied phone photo and
-    // the generated regression fixture.
-    const splitGap = Math.max(imageWidth * 0.04, medianWidth * 1.35, typicalHeight * 2.2);
+    // Pinyin syllables inside one answer have a small normal-space gap, while
+    // worksheet columns have a much larger gap. Cap the word-width influence so
+    // long syllables do not accidentally merge several numbered answers.
+    const splitGap = Math.max(imageWidth * 0.04, Math.min(medianWidth * 1.35, imageWidth * 0.075), typicalHeight * 2.2);
     let current = [];
 
     const flush = () => {
@@ -72,11 +69,24 @@ extractPinyinRegions = function extractPinyinRegionsFromPhonePhoto(tsv, imageWid
   return regions;
 };
 
+function vocabularyOnlyChineseEvidence(texts) {
+  const lines = [];
+  (texts || []).forEach(text => String(text || '').split(/\r?\n/).forEach(line => {
+    const hanCount = (line.match(/[\u3400-\u9fff]/g) || []).length;
+    // Short worksheet rows are useful evidence for the first ten answers.
+    // Exclude full sentences so words such as 读过 in sentence 12 cannot steal
+    // an ambiguous pinyin match intended for 如果 in the vocabulary grid.
+    if (hanCount >= 1 && hanCount <= 7) lines.push(line);
+  }));
+  return lines;
+}
+
 extractVocabFromPinyin = function extractReliableVocabRows(result) {
   const regions = extractPinyinRegions(result.pinyinTsv, result.pinyinWidth, result.pinyinHeight);
+  const vocabularyEvidence = vocabularyOnlyChineseEvidence(result.chineseTexts);
   const matches = [];
   regions.forEach(region => {
-    const match = bestLexiconMatch(region, result.lexicon, result.chineseTexts);
+    const match = bestLexiconMatch(region, result.lexicon, vocabularyEvidence);
     if (match) matches.push({ ...region, hanzi: match.entry.hanzi, score: match.score });
   });
 
@@ -94,7 +104,7 @@ extractVocabFromPinyin = function extractReliableVocabRows(result) {
   const reliableRows = rowGroups.filter(group => {
     const uniqueWords = new Set(group.matches.map(match => match.hanzi));
     const averageScore = group.matches.reduce((sum, match) => sum + match.score, 0) / Math.max(group.matches.length, 1);
-    return uniqueWords.size >= 2 && averageScore <= 0.43;
+    return uniqueWords.size >= 2 && averageScore <= 0.58;
   }).sort((a, b) => a.top - b.top);
 
   const ordered = [];
