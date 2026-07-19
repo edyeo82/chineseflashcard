@@ -1,9 +1,8 @@
 'use strict';
 
-// Real phone photos produce uneven pinyin word heights. The first version used a
-// narrow height cutoff that removed legitimate tokens such as "lang" and
-// "yong". Keep a wider Latin-token range, then reject noisy handwritten rows by
-// the quality and consistency of their lexicon matches instead.
+// Real phone photos produce uneven pinyin word heights. Keep a wide Latin-token
+// range, then reject noisy handwritten rows by the quality and consistency of
+// their lexicon matches.
 extractPinyinRegions = function extractPinyinRegionsFromPhonePhoto(tsv, imageWidth, imageHeight) {
   const words = parseOcrTsv(tsv).filter(word => {
     const normalized = ocrNormalizePinyin(word.text);
@@ -33,7 +32,14 @@ extractPinyinRegions = function extractPinyinRegionsFromPhonePhoto(tsv, imageWid
     const row = cluster.words.sort((a, b) => a.left - b.left);
     const widths = row.map(word => word.width).sort((a, b) => a - b);
     const medianWidth = widths[Math.floor(widths.length / 2)] || 30;
-    const splitGap = Math.max(imageWidth * 0.075, medianWidth * 2.6);
+
+    // Pinyin syllables inside one answer are separated by a small normal-space
+    // gap, while worksheet columns have a noticeably larger gap. The previous
+    // 2.6× median-word threshold was too wide and joined four numbered answers
+    // into one unusable region. This lower adaptive threshold keeps syllables
+    // together but splits worksheet columns in both the supplied phone photo and
+    // the generated regression fixture.
+    const splitGap = Math.max(imageWidth * 0.04, medianWidth * 1.35, typicalHeight * 2.2);
     let current = [];
 
     const flush = () => {
