@@ -1,8 +1,10 @@
 'use strict';
 
-const TINGXIE_MIC_FIX_VERSION = '20260720-2';
+const TINGXIE_MIC_FIX_VERSION = '20260720-3';
 let voiceListeningTimer = null;
 let voiceListeningWatchdog = null;
+let voiceWaitStartedAt = 0;
+const MAX_SPEECH_WAIT_MS = 3500;
 
 function isChromeOnIOS() {
   return /CriOS/i.test(navigator.userAgent || '');
@@ -20,6 +22,7 @@ function stopVoiceListeningTimers() {
   voiceListeningTimer = null;
   clearInterval(voiceListeningWatchdog);
   voiceListeningWatchdog = null;
+  voiceWaitStartedAt = 0;
 }
 
 function resetVoiceNextButton() {
@@ -94,6 +97,7 @@ function createDiagnosticRecognition() {
 
   recognition.onstart = () => {
     state.recognitionActive = true;
+    voiceWaitStartedAt = 0;
     setVoiceStatus('listening', 'Listening for “next”…');
   };
 
@@ -186,14 +190,29 @@ function startDiagnosticListening() {
 function scheduleDiagnosticListening() {
   clearTimeout(voiceListeningTimer);
   voiceListeningTimer = null;
-  if (!state.voiceEnabled || !panels.dictation.classList.contains('active')) return;
-
-  if (state.isSpeaking) {
-    setVoiceStatus('speaking', 'Waiting for the spoken word to finish before listening…');
-    voiceListeningTimer = setTimeout(scheduleDiagnosticListening, 120);
+  if (!state.voiceEnabled || !panels.dictation.classList.contains('active')) {
+    voiceWaitStartedAt = 0;
     return;
   }
 
+  if (state.isSpeaking) {
+    if (!voiceWaitStartedAt) voiceWaitStartedAt = Date.now();
+    const waited = Date.now() - voiceWaitStartedAt;
+    if (waited < MAX_SPEECH_WAIT_MS) {
+      setVoiceStatus('speaking', 'Waiting for the spoken word to finish before listening…');
+      voiceListeningTimer = setTimeout(scheduleDiagnosticListening, 120);
+      return;
+    }
+
+    // Some iPhone Chrome builds occasionally fail to deliver the speech
+    // synthesis onend event. The word is short, so after a bounded wait we
+    // cancel the stale playback state and continue with recognition.
+    window.speechSynthesis?.cancel();
+    state.isSpeaking = false;
+    setVoiceStatus('listening', 'Speech playback finished. Starting the microphone…');
+  }
+
+  voiceWaitStartedAt = 0;
   startDiagnosticListening();
 }
 
@@ -252,6 +271,7 @@ toggleVoiceNext = async function toggleVoiceNextWithMicrophoneCheck(forceValue) 
   }
 
   state.voiceEnabled = true;
+  voiceWaitStartedAt = Date.now();
   button.disabled = false;
   button.textContent = '⏸ Stop voice “next”';
   setVoiceStatus('listening', 'Microphone access confirmed. Waiting for the spoken word to finish…');
@@ -264,7 +284,13 @@ window.__tingxieMicrophoneDiagnostics = {
   verifyMicrophoneAccess,
   microphoneFailureMessage,
   isChromeOnIOS,
-  scheduleDiagnosticListening
+  scheduleDiagnosticListening,
+  getState: () => ({
+    voiceEnabled: state.voiceEnabled,
+    recognitionActive: state.recognitionActive,
+    isSpeaking: state.isSpeaking,
+    voiceWaitStartedAt
+  })
 };
 
 document.documentElement.dataset.tingxieMicDiagnostics = 'true';
