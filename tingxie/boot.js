@@ -47,13 +47,7 @@ function loadAccuracyScript(src, dataName) {
   });
 }
 
-// Load the accuracy layers after the normal app has attached its event handlers.
-// The click handler resolves runOcr at click time, so the overrides are ready well
-// before a user can choose and scan a photo.
 window.addEventListener('DOMContentLoaded', async () => {
-  // These two tests verify the original app flow and the basic real Tesseract
-  // worker independently. The dedicated OCR accuracy regressions exercise all
-  // high-accuracy layers using worksheet layouts with pinyin.
   const testMode = new URLSearchParams(location.search).get('test');
   if (testMode === 'deterministic' || testMode === 'real-ocr') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
@@ -62,6 +56,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadAccuracyScript('app-ocr-accuracy.js?v=20260719-6', 'tingxieOcrAccuracy');
     await loadAccuracyScript('app-ocr-region-fix.js?v=20260719-6', 'tingxieOcrRegionFix');
     await loadAccuracyScript('app-ocr-evidence-fix.js?v=20260719-6', 'tingxieOcrEvidenceFix');
+    await loadAccuracyScript('app-ocr-trusted-fallback.js?v=20260719-6', 'tingxieOcrTrustedFallback');
     await loadAccuracyScript('app-ocr-sentence-fix.js?v=20260719-6', 'tingxieOcrSentenceFix');
     markAccuracyReady();
   } catch {
