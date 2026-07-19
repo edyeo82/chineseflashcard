@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260719-5">
 </head>
 <body>
   <header class="app-header">
@@ -54,6 +54,7 @@
           <button id="scanSourceButton" class="primary-button full-width" type="button" disabled>
             Read words from photo
           </button>
+          <p id="appReadyStatus" class="help-text" role="status" aria-live="polite">App loading…</p>
           <div id="sourceProgress" class="progress-block hidden" aria-live="polite">
             <div class="progress-track"><div id="sourceProgressBar" class="progress-bar"></div></div>
             <p id="sourceProgressText">Preparing OCR…</p>
@@ -228,7 +229,27 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="app.js" defer></script>
+  <!-- All startup code is same-origin and loads in a deterministic order. The
+       large external OCR engine is loaded only after the user taps Read. -->
+  <script src="boot.js?v=20260719-5"></script>
+  <script src="app-core.js?v=20260719-5"></script>
+  <script src="app-ocr.js?v=20260719-5"></script>
+  <script src="app-camera.js?v=20260719-5"></script>
+  <script src="app-dictation.js?v=20260719-5"></script>
+  <script src="app-marking.js?v=20260719-5"></script>
+  <script src="app-init.js?v=20260719-5"></script>
+  <script>
+    (() => {
+      const status = document.getElementById('appReadyStatus');
+      if (!status) return;
+      if (document.documentElement.dataset.tingxieEventsBound === 'true') {
+        status.textContent = 'App ready. Choose or take a photo.';
+        status.dataset.ready = 'true';
+      } else {
+        status.textContent = 'App failed to start. Reload the page or report the App error shown below.';
+        status.dataset.ready = 'false';
+      }
+    })();
+  </script>
 </body>
 </html>

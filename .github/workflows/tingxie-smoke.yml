@@ -1,0 +1,55 @@
+name: Ting Xie smoke test
+
+on:
+  pull_request:
+    paths:
+      - 'tingxie/**'
+      - '.github/workflows/tingxie-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk python3
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check tingxie/boot.js
+          node --check tingxie/app-core.js
+          node --check tingxie/app-ocr.js
+          node --check tingxie/app-camera.js
+          node --check tingxie/app-dictation.js
+          node --check tingxie/app-marking.js
+          node --check tingxie/app-init.js
+          node --check tingxie/tests/smoke.mjs
+
+      - name: Run browser flow
+        run: node tingxie/tests/smoke.mjs
+
+      - name: Upload browser-test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-smoke-evidence
+          path: |
+            /tmp/tingxie-smoke-final.png
+            /tmp/tingxie-smoke-failure.png
+            /tmp/tingxie-real-ocr-failure.png
+            /tmp/tingxie-smoke-error.txt
+          if-no-files-found: ignore
