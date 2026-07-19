@@ -43,6 +43,7 @@ jobs:
           node --check tingxie/app-ocr-accuracy.js
           node --check tingxie/app-ocr-region-fix.js
           node --check tingxie/app-ocr-evidence-fix.js
+          node --check tingxie/app-ocr-trusted-fallback.js
           node --check tingxie/app-ocr-sentence-fix.js
           node --check tingxie/app-camera.js
           node --check tingxie/app-dictation.js
