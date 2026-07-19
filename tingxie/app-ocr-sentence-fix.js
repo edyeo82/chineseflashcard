@@ -74,13 +74,25 @@ function correctSentenceUsingPinyin(sentence, syllables, lexicon) {
   return characters.join('');
 }
 
+function looksLikeNaturalSentence(item) {
+  const hanCount = sentenceHanPositions(item).length;
+  if (hanCount < 8) return true;
+  if (/[，！？；]/.test(item)) return true;
+
+  // OCR may concatenate a whole numbered vocabulary row into an 8–10 character
+  // string. Genuine school spelling sentences normally contain pronouns,
+  // particles or verb constructions; the concatenated grids do not.
+  return /(我|我们|妈妈|的|是|不|可以|都会|认为|开着|睡觉|读过|购物|时候|时)/.test(item);
+}
+
 extractItems = function extractItemsWithSentencePinyinFix(input) {
   const items = OCR_EXTRACT_ITEMS_BEFORE_SENTENCE_FIX(input);
   if (!input || typeof input === 'string' || input.kind !== 'tingxie-source-ocr-v2') return items;
 
+  const filteredItems = items.filter(looksLikeNaturalSentence);
   const longPinyinLines = extractLongPinyinLines(input.chineseTexts).filter(syllables => syllables.length >= 10);
   let sentenceIndex = 0;
-  return items.map(item => {
+  return filteredItems.map(item => {
     const hanCount = sentenceHanPositions(item).length;
     if (hanCount < 8) return item;
     const syllables = longPinyinLines[sentenceIndex] || null;
@@ -91,5 +103,6 @@ extractItems = function extractItemsWithSentencePinyinFix(input) {
 
 window.__tingxieSentenceFix = {
   correctSentenceUsingPinyin,
+  looksLikeNaturalSentence,
   extractItems: input => extractItems(input)
 };
