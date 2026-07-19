@@ -1,7 +1,7 @@
 'use strict';
 
 (async () => {
-  const scripts = ['app-core.js', 'app-dictation.js', 'app-marking.js', 'app-init.js'];
+  const scripts = ['app-core.js', 'app-camera.js', 'app-dictation.js', 'app-marking.js', 'app-init.js'];
   for (const src of scripts) {
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');

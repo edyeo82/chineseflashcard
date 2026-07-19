@@ -1,0 +1,102 @@
+.camera-open { overflow: hidden; }
+
+.in-browser-camera-button { margin-top: 12px; }
+
+.camera-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+}
+
+.camera-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 18, 14, .72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.camera-sheet {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  border-radius: 22px;
+  background: #fff8ec;
+  padding: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .3);
+}
+
+.camera-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.camera-close-button {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 1px solid #eadfce;
+  border-radius: 50%;
+  background: white;
+  color: #2c241c;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.camera-viewport {
+  position: relative;
+  min-height: min(62vh, 520px);
+  overflow: hidden;
+  border-radius: 17px;
+  background: #17130f;
+  display: grid;
+  place-items: center;
+}
+
+.camera-viewport video {
+  width: 100%;
+  height: min(62vh, 520px);
+  display: block;
+  object-fit: contain;
+  background: #17130f;
+}
+
+.camera-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: white;
+  background: rgba(23, 19, 15, .78);
+  text-align: center;
+  font-weight: 800;
+}
+
+.camera-help {
+  margin: 11px 0;
+  color: #73685e;
+  text-align: center;
+  font-size: .86rem;
+}
+
+.camera-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 10px;
+}
+
+.camera-capture-button { min-height: 54px; }
+
+@media (max-width: 480px) {
+  .camera-dialog { padding-left: 0; padding-right: 0; place-items: end center; }
+  .camera-sheet { width: 100%; border-radius: 22px 22px 0 0; padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+  .camera-viewport, .camera-viewport video { min-height: 48vh; height: 48vh; }
+}
