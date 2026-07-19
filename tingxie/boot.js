@@ -25,6 +25,10 @@ if ('serviceWorker' in navigator) {
 // The click handler resolves runOcr at click time, so this same-origin override is
 // ready well before a user can choose and scan a photo.
 window.addEventListener('DOMContentLoaded', () => {
+  // The existing deterministic smoke test supplies a deliberately minimal OCR
+  // mock. Its purpose is the overall app flow; the separate accuracy regression
+  // test exercises this high-accuracy layer in full.
+  if (new URLSearchParams(location.search).get('test') === 'deterministic') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
   const script = document.createElement('script');
   script.src = 'app-ocr-accuracy.js?v=20260719-6';
