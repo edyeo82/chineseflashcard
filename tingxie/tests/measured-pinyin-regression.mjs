@@ -64,23 +64,42 @@ try {
   await page.goto(`${BASE_URL}/tingxie/?test=measured-pinyin`, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.documentElement.dataset.tingxieOcrAccuracy === 'true');
 
-  const actual = await page.evaluate(tsv => {
+  const result = await page.evaluate(tsv => {
     const normalize = window.__tingxieOcrAccuracy.normalizePinyin;
     const lexicon = window.__tingxieOcrAccuracy.builtinLexicon.map(([hanzi, pinyin]) => {
       const normalized = normalize(pinyin);
       return { hanzi, pinyin: normalized, key: normalized.replace(/\s/g, ''), syllables: normalized.split(' '), priority: 3 };
     });
-    return window.__tingxieRegionFix.extractVocabFromPinyin({
+    const input = {
       pinyinTsv: tsv,
       pinyinWidth: 1800,
       pinyinHeight: 700,
       lexicon,
       chineseTexts: ['浪费 组屋 所以 如果 车辆 一份 尽力 超市 日用品 停车场']
-    });
+    };
+    const regions = window.__tingxieRegionFix.extractPinyinRegions(tsv, 1800, 700);
+    const targetRegion = regions.find(region => /zi|wii/i.test(region.raw)) || null;
+    const trusted = targetRegion
+      ? window.__tingxieTrustedFallback.trustedCuratedMatch(targetRegion, lexicon, input.chineseTexts)
+      : null;
+    const chosen = targetRegion
+      ? window.__tingxieTrustedFallback.bestLexiconMatch(targetRegion, lexicon, input.chineseTexts)
+      : null;
+    const evidenceLines = window.__tingxieEvidenceFix.vocabularyEvidenceText(input.chineseTexts);
+    return {
+      actual: window.__tingxieRegionFix.extractVocabFromPinyin(input),
+      debug: {
+        targetRegion,
+        trusted: trusted ? { hanzi: trusted.entry.hanzi, score: trusted.score, distance: trusted.distance, evidence: trusted.evidence } : null,
+        chosen: chosen ? { hanzi: chosen.entry.hanzi, score: chosen.score, distance: chosen.distance, evidence: chosen.evidence } : null,
+        evidenceLines,
+        regions: regions.map(region => ({ raw: region.raw, pinyin: region.pinyin, top: region.top, left: region.left }))
+      }
+    };
   }, measuredTsv());
 
-  assert.deepEqual(actual, EXPECTED);
-  await page.locator('#wordList').fill(actual.join('\n'));
+  assert.deepEqual(result.actual, EXPECTED, JSON.stringify(result.debug, null, 2));
+  await page.locator('#wordList').fill(result.actual.join('\n'));
   await page.screenshot({ path: '/tmp/tingxie-measured-pinyin-pass.png', fullPage: true });
   console.log('TINGXIE_MEASURED_PINYIN_REGRESSION_PASS');
 } catch (error) {
