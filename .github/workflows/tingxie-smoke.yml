@@ -5,6 +5,12 @@ on:
     paths:
       - 'tingxie/**'
       - '.github/workflows/tingxie-smoke.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tingxie/**'
+      - '.github/workflows/tingxie-smoke.yml'
   workflow_dispatch:
 
 permissions:
@@ -38,6 +44,7 @@ jobs:
           node --check tingxie/app-marking.js
           node --check tingxie/app-init.js
           node --check tingxie/tests/smoke.mjs
+          node --check tingxie/tests/live.mjs
 
       - name: Run browser flow
         run: node tingxie/tests/smoke.mjs
@@ -52,4 +59,37 @@ jobs:
             /tmp/tingxie-smoke-failure.png
             /tmp/tingxie-real-ocr-failure.png
             /tmp/tingxie-smoke-error.txt
+          if-no-files-found: ignore
+
+  verify-live-pages:
+    if: github.event_name == 'push'
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install live-test dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Test the public GitHub Pages app
+        run: node tingxie/tests/live.mjs
+
+      - name: Upload public-page evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-live-pages-evidence
+          path: |
+            /tmp/tingxie-live-pass.png
+            /tmp/tingxie-live-failure.png
+            /tmp/tingxie-live-error.txt
           if-no-files-found: ignore
