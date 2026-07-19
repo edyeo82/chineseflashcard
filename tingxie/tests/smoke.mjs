@@ -6,6 +6,9 @@ import fs from 'node:fs/promises';
 const PORT = 4173;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const FIXTURE = '/tmp/tingxie-fixture.png';
+const FAILURE_LOG = '/tmp/tingxie-smoke-error.txt';
+
+const milestone = message => console.log(`TINGXIE_MILESTONE: ${message}`);
 
 const server = spawn('python3', ['-m', 'http.server', String(PORT), '--directory', 'tingxie'], {
   stdio: ['ignore', 'pipe', 'pipe']
@@ -51,9 +54,20 @@ const makeFixture = async browser => {
   await page.setContent(`<!doctype html><html><body style="margin:0;background:white"><div id="sheet" style="width:760px;padding:45px;font-family:'Noto Sans CJK SC','Arial Unicode MS',sans-serif;font-size:56px;line-height:1.55;color:#111;background:#fff">1. 浪费<br>2. 组屋<br>3. 所以<br>4. 如果<br>5. 车辆<br>6. 一份<br>7. 尽力<br>8. 超市<br>9. 日用品<br>10. 停车场</div></body></html>`);
   await page.locator('#sheet').screenshot({ path: FIXTURE });
   await context.close();
+  milestone('fixture-created');
 };
 
 const MOCK_OCR_TEXT = `1. 浪费\n2. 组屋\n3. 所以\n4. 如果\n5. 车辆\n6. 一份\n7. 尽力\n8. 超市\n9. 日用品\n10. 停车场\n11. 我认为开着灯睡觉是不对的。\n12. 读过的报纸，我们可以废物利用。\n默写：妈妈购物时，都会用环保袋装东西。`;
+
+const attachDiagnostics = page => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(`pageerror: ${error.stack || error.message}`));
+  page.on('console', message => {
+    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+  });
+  page.on('requestfailed', request => errors.push(`requestfailed: ${request.url()} :: ${request.failure()?.errorText}`));
+  return errors;
+};
 
 const runDeterministicFlow = async browser => {
   const context = await browser.newContext({ viewport: { width: 430, height: 932 } });
@@ -64,90 +78,134 @@ const runDeterministicFlow = async browser => {
   }));
 
   const page = await context.newPage();
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`${BASE_URL}/?test=deterministic`, { waitUntil: 'networkidle' });
+  const errors = attachDiagnostics(page);
+  try {
+    await page.goto(`${BASE_URL}/?test=deterministic`, { waitUntil: 'networkidle' });
+    milestone('deterministic-page-loaded');
 
-  await page.locator('#appReadyStatus').waitFor();
-  assert.match(await page.locator('#appReadyStatus').innerText(), /App ready/);
-  assert.equal(await page.locator('html').getAttribute('data-tingxie-events-bound'), 'true');
+    await page.locator('#appReadyStatus').waitFor();
+    assert.match(await page.locator('#appReadyStatus').innerText(), /App ready/);
+    assert.equal(await page.locator('html').getAttribute('data-tingxie-events-bound'), 'true');
+    milestone('events-bound');
 
-  await page.locator('#sourceImage').setInputFiles(FIXTURE);
-  await page.locator('#sourcePreview:not(.hidden)').waitFor();
-  assert.equal(await page.locator('#scanSourceButton').isEnabled(), true);
+    await page.locator('#sourceImage').setInputFiles(FIXTURE);
+    await page.locator('#sourcePreview:not(.hidden)').waitFor();
+    assert.equal(await page.locator('#scanSourceButton').isEnabled(), true);
+    milestone('photo-loaded');
 
-  await page.locator('#scanSourceButton').click();
-  await page.locator('#sourceProgress:not(.hidden)').waitFor();
-  await page.locator('#wordList').waitFor({ state: 'visible' });
-  await page.waitForFunction(() => document.querySelector('#wordList').value.includes('停车场'));
+    await page.locator('#scanSourceButton').click();
+    await page.locator('#sourceProgress:not(.hidden)').waitFor();
+    await page.waitForFunction(() => document.querySelector('#wordList').value.includes('停车场'));
+    milestone('mock-ocr-complete');
 
-  const words = (await page.locator('#wordList').inputValue()).split('\n').filter(Boolean);
-  assert.ok(words.includes('浪费'));
-  assert.ok(words.includes('停车场'));
-  assert.ok(words.some(word => word.includes('我认为开着灯睡觉是不对的')));
-  assert.equal(await page.locator('#startDictationButton').isEnabled(), true);
+    const words = (await page.locator('#wordList').inputValue()).split('\n').filter(Boolean);
+    assert.ok(words.includes('浪费'));
+    assert.ok(words.includes('停车场'));
+    assert.ok(words.some(word => word.includes('我认为开着灯睡觉是不对的')));
+    assert.equal(await page.locator('#startDictationButton').isEnabled(), true);
 
-  await page.locator('#startDictationButton').click();
-  await page.locator('#dictationPanel.active').waitFor();
-  assert.match(await page.locator('#dictationProgressText').innerText(), /^1 of /);
+    await page.locator('#startDictationButton').click();
+    await page.locator('#dictationPanel.active').waitFor();
+    assert.match(await page.locator('#dictationProgressText').innerText(), /^1 of /);
+    milestone('dictation-started');
 
-  for (let index = 0; index < words.length; index += 1) {
-    await page.locator('#nextButton').click();
+    for (let index = 0; index < words.length; index += 1) {
+      await page.locator('#nextButton').click();
+    }
+    await page.locator('#markingPanel.active').waitFor();
+    milestone('marking-opened');
+
+    const answers = words.slice();
+    answers[0] = '浪废';
+    answers.splice(1, 1);
+    await page.locator('#answerText').fill(answers.join('\n'));
+    await page.locator('#compareButton').click();
+    await page.locator('#markingTableWrap:not(.hidden)').waitFor();
+    assert.equal(await page.locator('.mark-row').count(), words.length);
+    milestone('answers-compared');
+
+    await page.locator('#saveMarkingButton').click();
+    await page.locator('#reviewPanel.active').waitFor();
+    assert.ok(await page.locator('.mistake-card').count() >= 1);
+    assert.deepEqual(errors, []);
+
+    await page.screenshot({ path: '/tmp/tingxie-smoke-final.png', fullPage: true });
+    milestone('deterministic-flow-pass');
+  } catch (error) {
+    await page.screenshot({ path: '/tmp/tingxie-smoke-failure.png', fullPage: true }).catch(() => {});
+    const state = await page.evaluate(() => ({
+      url: location.href,
+      ready: document.documentElement.dataset.tingxieEventsBound,
+      status: document.querySelector('#appReadyStatus')?.textContent,
+      toast: document.querySelector('#toast')?.textContent,
+      buttonDisabled: document.querySelector('#scanSourceButton')?.disabled,
+      buttonText: document.querySelector('#scanSourceButton')?.textContent,
+      progress: document.querySelector('#sourceProgressText')?.textContent,
+      words: document.querySelector('#wordList')?.value
+    })).catch(() => ({}));
+    throw new Error(`${error.stack || error}\nBrowser errors:\n${errors.join('\n')}\nPage state:\n${JSON.stringify(state, null, 2)}`);
+  } finally {
+    await context.close();
   }
-  await page.locator('#markingPanel.active').waitFor();
-
-  const answers = words.slice();
-  answers[0] = '浪废';
-  answers.splice(1, 1);
-  await page.locator('#answerText').fill(answers.join('\n'));
-  await page.locator('#compareButton').click();
-  await page.locator('#markingTableWrap:not(.hidden)').waitFor();
-  assert.equal(await page.locator('.mark-row').count(), words.length);
-
-  await page.locator('#saveMarkingButton').click();
-  await page.locator('#reviewPanel.active').waitFor();
-  assert.ok(await page.locator('.mistake-card').count() >= 1);
-  assert.deepEqual(errors, []);
-
-  await page.screenshot({ path: '/tmp/tingxie-smoke-final.png', fullPage: true });
-  await context.close();
 };
 
 const runRealOcrFlow = async browser => {
   const context = await browser.newContext({ viewport: { width: 430, height: 932 } });
   await addBrowserStubs(context);
   const page = await context.newPage();
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`${BASE_URL}/?test=real-ocr`, { waitUntil: 'networkidle' });
-  assert.match(await page.locator('#appReadyStatus').innerText(), /App ready/);
+  const errors = attachDiagnostics(page);
+  try {
+    await page.goto(`${BASE_URL}/?test=real-ocr`, { waitUntil: 'networkidle' });
+    assert.match(await page.locator('#appReadyStatus').innerText(), /App ready/);
+    milestone('real-ocr-page-loaded');
 
-  await page.locator('#sourceImage').setInputFiles(FIXTURE);
-  await page.locator('#scanSourceButton').click();
-  await page.waitForFunction(() => {
-    const value = document.querySelector('#wordList')?.value || '';
-    const errorText = document.querySelector('#sourceProgressText')?.textContent || '';
-    return value.length > 0 || /failed|could not|timed out/i.test(errorText);
-  }, { timeout: 150000 });
+    await page.locator('#sourceImage').setInputFiles(FIXTURE);
+    await page.locator('#scanSourceButton').click();
+    await page.waitForFunction(() => {
+      const value = document.querySelector('#wordList')?.value || '';
+      const errorText = document.querySelector('#sourceProgressText')?.textContent || '';
+      return value.length > 0 || /failed|could not|timed out/i.test(errorText);
+    }, null, { timeout: 150000 });
 
-  const value = await page.locator('#wordList').inputValue();
-  if (!value) {
-    throw new Error(`Real OCR did not populate the list: ${await page.locator('#sourceProgressText').innerText()}`);
+    const value = await page.locator('#wordList').inputValue();
+    if (!value) {
+      throw new Error(`Real OCR did not populate the list: ${await page.locator('#sourceProgressText').innerText()}`);
+    }
+    assert.ok(/[浪组所如车份尽超日停]/.test(value), `Unexpected OCR result: ${value}`);
+    assert.deepEqual(errors, []);
+    milestone('real-ocr-pass');
+  } catch (error) {
+    await page.screenshot({ path: '/tmp/tingxie-real-ocr-failure.png', fullPage: true }).catch(() => {});
+    const state = await page.evaluate(() => ({
+      status: document.querySelector('#appReadyStatus')?.textContent,
+      toast: document.querySelector('#toast')?.textContent,
+      buttonDisabled: document.querySelector('#scanSourceButton')?.disabled,
+      buttonText: document.querySelector('#scanSourceButton')?.textContent,
+      progress: document.querySelector('#sourceProgressText')?.textContent,
+      words: document.querySelector('#wordList')?.value
+    })).catch(() => ({}));
+    throw new Error(`${error.stack || error}\nBrowser errors:\n${errors.join('\n')}\nPage state:\n${JSON.stringify(state, null, 2)}`);
+  } finally {
+    await context.close();
   }
-  assert.ok(/[浪组所如车份尽超日停]/.test(value), `Unexpected OCR result: ${value}`);
-  assert.deepEqual(errors, []);
-  await context.close();
 };
 
 let browser;
 try {
   await waitForServer();
+  milestone('server-ready');
   browser = await chromium.launch({ headless: true });
   await makeFixture(browser);
   await runDeterministicFlow(browser);
   await runRealOcrFlow(browser);
   await fs.access('/tmp/tingxie-smoke-final.png');
   console.log('TINGXIE_SMOKE_PASS');
+} catch (error) {
+  const detail = error.stack || String(error);
+  await fs.writeFile(FAILURE_LOG, detail, 'utf8');
+  console.error('TINGXIE_SMOKE_FAILURE');
+  console.error(detail);
+  process.exitCode = 1;
 } finally {
   await browser?.close();
   server.kill('SIGTERM');
