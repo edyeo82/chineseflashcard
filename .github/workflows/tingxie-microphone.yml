@@ -1,0 +1,131 @@
+name: Ting Xie microphone diagnostics
+
+on:
+  pull_request:
+    paths:
+      - 'tingxie/app-mic-fix.js'
+      - 'tingxie/boot.js'
+      - 'tingxie/index.html'
+      - 'tingxie/tests/microphone-diagnostics.mjs'
+      - '.github/workflows/tingxie-microphone.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tingxie/app-mic-fix.js'
+      - 'tingxie/boot.js'
+      - 'tingxie/index.html'
+      - 'tingxie/tests/microphone-diagnostics.mjs'
+      - '.github/workflows/tingxie-microphone.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  microphone-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check tingxie/app-mic-fix.js
+          node --check tingxie/boot.js
+          node --check tingxie/tests/microphone-diagnostics.mjs
+
+      - name: Test microphone diagnostics
+        run: node tingxie/tests/microphone-diagnostics.mjs
+
+      - name: Upload microphone evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-microphone-evidence
+          path: |
+            /tmp/tingxie-microphone-denied.png
+            /tmp/tingxie-microphone-service-blocked.png
+            /tmp/tingxie-microphone-success.png
+            /tmp/tingxie-microphone-error.txt
+          if-no-files-found: ignore
+
+  verify-live-microphone:
+    if: github.event_name == 'push'
+    needs: microphone-flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Mark live microphone verification pending
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'pending',
+              context: 'tingxie-live-microphone',
+              description: 'Testing deployed microphone diagnostics',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install live-test browser
+        run: |
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Test public microphone diagnostics
+        id: live_test
+        continue-on-error: true
+        env:
+          TINGXIE_BASE_URL: https://edyeo82.github.io/chineseflashcard/tingxie/
+        run: node tingxie/tests/microphone-diagnostics.mjs
+
+      - name: Upload live microphone evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-live-microphone-evidence
+          path: |
+            /tmp/tingxie-microphone-denied.png
+            /tmp/tingxie-microphone-service-blocked.png
+            /tmp/tingxie-microphone-success.png
+            /tmp/tingxie-microphone-error.txt
+          if-no-files-found: ignore
+
+      - name: Publish live microphone result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = '${{ steps.live_test.outcome }}' === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: passed ? 'success' : 'failure',
+              context: 'tingxie-live-microphone',
+              description: passed ? 'Deployed microphone diagnostics passed' : 'Deployed microphone diagnostics failed',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - name: Fail when live verification failed
+        if: steps.live_test.outcome != 'success'
+        run: exit 1
