@@ -1,5 +1,7 @@
 'use strict';
 
+const TINGXIE_BOOT_VERSION = '20260719-7';
+
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
   if (!toast) return;
@@ -29,6 +31,14 @@ function showAccuracyLoadFailure() {
   }
 }
 
+function showPasteLoadFailure() {
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = 'The paste-list tool could not load. Reload the page.';
+    toast.classList.add('show');
+  }
+}
+
 function markAccuracyReady() {
   document.documentElement.dataset.tingxieOcrAccuracy = 'true';
   const status = document.getElementById('appReadyStatus');
@@ -48,6 +58,12 @@ function loadAccuracyScript(src, dataName) {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await loadAccuracyScript('app-paste-list.js?v=20260719-7', 'tingxiePasteList');
+  } catch {
+    showPasteLoadFailure();
+  }
+
   const testMode = new URLSearchParams(location.search).get('test');
   if (testMode === 'deterministic' || testMode === 'real-ocr') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
