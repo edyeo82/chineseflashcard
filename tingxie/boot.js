@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260720-1';
+const TINGXIE_BOOT_VERSION = '20260720-3';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -98,7 +98,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   installLearningHubLink();
 
   try {
-    await loadAccuracyScript('app-mic-fix.js?v=20260720-1', 'tingxieMicFix');
+    await loadAccuracyScript('app-mic-fix.js?v=20260720-3', 'tingxieMicFix');
   } catch {
     showMicrophoneLoadFailure();
   }
