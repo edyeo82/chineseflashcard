@@ -26,6 +26,7 @@ function bindEvents() {
       showToast(`Found ${items.length} possible item${items.length === 1 ? '' : 's'}. Please check them.`);
     } catch (error) {
       showToast(error.message || 'The photo could not be read.');
+      $('sourceProgress').classList.remove('hidden');
       $('sourceProgressText').textContent = error.message || 'OCR failed.';
     } finally {
       button.disabled = !state.sourceFile;
@@ -45,6 +46,7 @@ function bindEvents() {
       showToast('First-pass marking is ready. Confirm uncertain rows.');
     } catch (error) {
       showToast(error.message || 'The handwriting could not be read.');
+      $('answerProgress').classList.remove('hidden');
       $('answerProgressText').textContent = error.message || 'OCR failed.';
     } finally {
       button.disabled = !state.answerFile;
@@ -160,9 +162,7 @@ function init() {
     $('voiceNextButton').disabled = true;
   }
 
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('./sw.js').catch(() => { /* app still works without offline cache */ });
-  }
+  document.documentElement.dataset.tingxieEventsBound = 'true';
 }
 
 init();
