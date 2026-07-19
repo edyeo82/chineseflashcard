@@ -4,11 +4,16 @@ function vocabularyEvidenceText(texts) {
   const lines = [];
   (texts || []).forEach(text => {
     String(text || '').split(/\r?\n/).forEach(line => {
-      const hanCount = (line.match(/[\u3400-\u9fff]/g) || []).length;
-      const numberedMarkers = line.match(/(?:^|\s)\d{1,2}\s*[.、:：)）]/g) || [];
-      const hasSentencePunctuation = /[。！？]/.test(line);
+      const trimmed = line.trim();
+      const hanCount = (trimmed.match(/[\u3400-\u9fff]/g) || []).length;
+      const numberedMarkers = trimmed.match(/(?:^|\s)\d{1,2}\s*[.、:：)）]/g) || [];
+      const isSentenceNumber = /^(?:11|12)\s*[.、:：)）]/.test(trimmed);
+      const isMoxie = /^(?:默写|默寫)/.test(trimmed);
+      const hasSentencePunctuation = /[，。！？；]/.test(trimmed);
+      if (isSentenceNumber || isMoxie) return;
+
       const isVocabularyRow = numberedMarkers.length >= 2 || (hanCount >= 1 && hanCount <= 7 && !hasSentencePunctuation);
-      if (isVocabularyRow) lines.push(line);
+      if (isVocabularyRow) lines.push(trimmed);
     });
   });
   return lines;
