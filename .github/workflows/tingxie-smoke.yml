@@ -49,22 +49,22 @@ jobs:
           node --check tingxie/app-marking.js
           node --check tingxie/app-init.js
           node --check tingxie/tests/smoke.mjs
-          node --check tingxie/tests/ocr-accuracy.mjs
+          node --check tingxie/tests/ocr-accuracy-layout.mjs
           node --check tingxie/tests/exact-photo-regression.mjs
-          node --check tingxie/tests/measured-pinyin-regression.mjs
-          node --check tingxie/tests/live.mjs
+          node --check tingxie/tests/measured-pinyin-layout.mjs
+          node --check tingxie/tests/live-accuracy-layout.mjs
 
       - name: Run full browser flow
         run: node tingxie/tests/smoke.mjs
 
       - name: Run exact OCR accuracy regression
-        run: node tingxie/tests/ocr-accuracy.mjs
+        run: node tingxie/tests/ocr-accuracy-layout.mjs
 
       - name: Run supplied-photo OCR regression
         run: node tingxie/tests/exact-photo-regression.mjs
 
       - name: Run measured pinyin-box regression
-        run: node tingxie/tests/measured-pinyin-regression.mjs
+        run: node tingxie/tests/measured-pinyin-layout.mjs
 
       - name: Upload browser-test evidence
         if: always()
@@ -123,7 +123,7 @@ jobs:
       - name: Test the public GitHub Pages app
         id: live_test
         continue-on-error: true
-        run: node tingxie/tests/live.mjs
+        run: node tingxie/tests/live-accuracy-layout.mjs
 
       - name: Upload public-page evidence
         if: always()
