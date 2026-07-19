@@ -9,7 +9,7 @@ function vocabularyEvidenceText(texts) {
       const numberedMarkers = trimmed.match(/(?:^|\s)\d{1,2}\s*[.、:：)）]/g) || [];
       const isSentenceNumber = /^(?:11|12)\s*[.、:：)）]/.test(trimmed);
       const isMoxie = /^(?:默写|默寫)/.test(trimmed);
-      const hasSentencePunctuation = /[，。！？；]/.test(trimmed);
+      const hasSentencePunctuation = /[，,。！？；;]/.test(trimmed);
       if (isSentenceNumber || isMoxie) return;
 
       const isVocabularyRow = numberedMarkers.length >= 2 || (hanCount >= 1 && hanCount <= 7 && !hasSentencePunctuation);
@@ -17,6 +17,20 @@ function vocabularyEvidenceText(texts) {
     });
   });
   return lines;
+}
+
+function numberedVocabularyHints(texts) {
+  const hints = new Map();
+  (texts || []).forEach(text => {
+    String(text || '').split(/\r?\n/).forEach(line => {
+      const matches = line.matchAll(/(?:^|\s)(\d{1,2})\s*[.、:：)）-]?\s*([\u3400-\u9fff]{1,7})/g);
+      for (const match of matches) {
+        const number = Number(match[1]);
+        if (number >= 1 && number <= 10 && !hints.has(number)) hints.set(number, match[2]);
+      }
+    });
+  });
+  return hints;
 }
 
 chineseEvidenceScore = function vocabularyOnlyChineseEvidence(hanzi, texts) {
@@ -29,14 +43,43 @@ chineseEvidenceScore = function vocabularyOnlyChineseEvidence(hanzi, texts) {
   return chars.filter(char => joined.includes(char)).length / Math.max(chars.length, 1) * 0.09;
 };
 
-extractVocabFromPinyin = function extractReliableVocabularyWithSparseRows(result) {
-  const regions = extractPinyinRegions(result.pinyinTsv, result.pinyinWidth, result.pinyinHeight);
-  const matches = [];
-  regions.forEach(region => {
-    const match = bestLexiconMatch(region, result.lexicon, result.chineseTexts);
-    if (match) matches.push({ ...region, hanzi: match.entry.hanzi, score: match.score, distance: match.distance });
+function plainPinyinRegions(text) {
+  const regions = [];
+  String(text || '').split(/\r?\n/).forEach((line, rowIndex) => {
+    const chunks = line.trim().split(/\s{2,}|\t+/).map(chunk => chunk.trim()).filter(Boolean);
+    if (chunks.length < 2) return;
+    chunks.forEach((chunk, columnIndex) => {
+      const pinyin = ocrNormalizePinyin(chunk);
+      const syllables = pinyin ? pinyin.split(' ') : [];
+      if (syllables.length < 1 || syllables.length > 5 || pinyin.replace(/\s/g, '').length < 3) return;
+      regions.push({
+        raw: chunk,
+        pinyin,
+        key: ocrPinyinKey(pinyin),
+        syllables,
+        left: columnIndex * 400,
+        right: columnIndex * 400 + 250,
+        top: rowIndex * 180
+      });
+    });
   });
+  return regions;
+}
 
+function matchVocabularyRegions(regions, result) {
+  const hints = numberedVocabularyHints(result.chineseTexts);
+  const sorted = regions.slice().sort((a, b) => a.top - b.top || a.left - b.left);
+  const matches = [];
+  sorted.forEach((region, index) => {
+    const hint = hints.get(index + 1);
+    const evidenceTexts = hint ? [hint] : result.chineseTexts;
+    const match = bestLexiconMatch(region, result.lexicon, evidenceTexts);
+    if (match) matches.push({ ...region, hanzi: match.entry.hanzi, score: match.score, distance: match.distance, ordinal: index + 1 });
+  });
+  return matches;
+}
+
+function reliableOrderedMatches(matches, result) {
   const rowGroups = [];
   matches.sort((a, b) => a.top - b.top || a.left - b.left).forEach(match => {
     let group = rowGroups.find(item => Math.abs(item.top - match.top) <= Math.max(35, result.pinyinHeight * 0.065));
@@ -58,12 +101,33 @@ extractVocabFromPinyin = function extractReliableVocabularyWithSparseRows(result
   const ordered = [];
   reliableRows.forEach(group => {
     group.matches.sort((a, b) => a.left - b.left).forEach(match => {
-      const duplicate = ordered.find(item => item.hanzi === match.hanzi && Math.abs(item.top - match.top) < result.pinyinHeight * 0.08);
-      if (!duplicate) ordered.push(match);
-      else if (match.score < duplicate.score) Object.assign(duplicate, match);
+      if (!ordered.some(item => item.hanzi === match.hanzi)) ordered.push(match);
     });
   });
-  return ordered.slice(0, 20).map(item => item.hanzi);
+  return ordered;
+}
+
+extractVocabFromPinyin = function extractReliableVocabularyWithFallback(result) {
+  const tsvRegions = extractPinyinRegions(result.pinyinTsv, result.pinyinWidth, result.pinyinHeight);
+  const tsvOrdered = reliableOrderedMatches(matchVocabularyRegions(tsvRegions, result), result);
+
+  const textRegions = plainPinyinRegions(result.pinyinText);
+  const textMatches = matchVocabularyRegions(textRegions, result)
+    .filter(match => match.score <= 0.5 || match.distance <= 0.48)
+    .sort((a, b) => a.ordinal - b.ordinal);
+  const textOrdered = [];
+  textMatches.forEach(match => {
+    if (!textOrdered.some(item => item.hanzi === match.hanzi)) textOrdered.push(match);
+  });
+
+  const primary = textOrdered.length > tsvOrdered.length ? textOrdered : tsvOrdered;
+  const secondary = primary === textOrdered ? tsvOrdered : textOrdered;
+  const combined = primary.slice();
+  secondary.forEach(match => {
+    if (!combined.some(item => item.hanzi === match.hanzi)) combined.push(match);
+  });
+
+  return combined.slice(0, 20).map(item => item.hanzi);
 };
 
 extractSentenceItems = function extractOnlyActualSentences(chineseTexts) {
@@ -77,10 +141,6 @@ extractSentenceItems = function extractOnlyActualSentences(chineseTexts) {
       const hanziCount = (cleaned.match(/[\u3400-\u9fff]/g) || []).length;
       if (hanziCount < 8 || hanziCount > 40 || /^(听写|聽寫)/.test(cleaned)) return;
 
-      // A genuine sentence has sentence punctuation, a sentence/默写 number, or
-      // a long pinyin line next to it. Bare concatenated vocabulary rows should
-      // not become artificial sentences merely because cleanSentenceLine adds a
-      // final full stop.
       const explicitlyNumberedSentence = /(?:^|\D)(?:11|12)(?:\D|$)/.test(line);
       const isMoxie = /默写|默寫/.test(line);
       const hadSentencePunctuation = /[，。！？]/.test(line);
@@ -124,6 +184,8 @@ extractSentenceItems = function extractOnlyActualSentences(chineseTexts) {
 
 window.__tingxieEvidenceFix = {
   vocabularyEvidenceText,
+  numberedVocabularyHints,
+  plainPinyinRegions,
   chineseEvidenceScore: (hanzi, texts) => chineseEvidenceScore(hanzi, texts),
   extractVocabFromPinyin: result => extractVocabFromPinyin(result),
   extractSentenceItems: texts => extractSentenceItems(texts)
