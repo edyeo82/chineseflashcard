@@ -51,10 +51,11 @@ function loadAccuracyScript(src, dataName) {
 // The click handler resolves runOcr at click time, so the overrides are ready well
 // before a user can choose and scan a photo.
 window.addEventListener('DOMContentLoaded', async () => {
-  // The original deterministic smoke test supplies a deliberately minimal OCR
-  // mock. Its purpose is the overall app flow; separate strict regressions
-  // exercise all high-accuracy layers in full.
-  if (new URLSearchParams(location.search).get('test') === 'deterministic') return;
+  // These two tests verify the original app flow and the basic real Tesseract
+  // worker independently. The dedicated OCR accuracy regressions exercise all
+  // high-accuracy layers using worksheet layouts with pinyin.
+  const testMode = new URLSearchParams(location.search).get('test');
+  if (testMode === 'deterministic' || testMode === 'real-ocr') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
 
   try {
