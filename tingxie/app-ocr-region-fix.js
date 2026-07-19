@@ -1,12 +1,17 @@
 'use strict';
 
 // Real phone photos produce uneven pinyin word heights. Keep a wide Latin-token
-// range, then reject noisy handwritten rows by the quality and consistency of
-// their lexicon matches.
+// range, then reject noisy handwritten rows by geometry and match consistency.
 extractPinyinRegions = function extractPinyinRegionsFromPhonePhoto(tsv, imageWidth, imageHeight) {
   const words = parseOcrTsv(tsv).filter(word => {
     const normalized = ocrNormalizePinyin(word.text);
-    return normalized && word.confidence > 0 && word.top > imageHeight * 0.08 && word.top < imageHeight * 0.95;
+    const compactLength = normalized.replace(/\s/g, '').length;
+    const maximumTokenWidth = Math.max(115, compactLength * 42);
+    return normalized
+      && word.confidence > 0
+      && word.top > imageHeight * 0.08
+      && word.top < imageHeight * 0.95
+      && word.width <= maximumTokenWidth;
   });
   if (!words.length) return [];
 
@@ -35,9 +40,8 @@ extractPinyinRegions = function extractPinyinRegionsFromPhonePhoto(tsv, imageWid
 
     // Pinyin syllables inside one answer have a small normal-space gap, while
     // worksheet columns have a larger gap. The supplied worksheet contained a
-    // genuine column gap of 118 px; the previous 121.5 px threshold merged
-    // 车辆 and 一份. The lower adaptive factor still keeps 20–25 px syllable
-    // gaps together while separating adjacent numbered answers.
+    // genuine column gap of 118 px; this threshold separates it while retaining
+    // the 20–25 px spacing within one phrase.
     const splitGap = Math.max(imageWidth * 0.035, Math.min(medianWidth * 1.15, imageWidth * 0.065), typicalHeight * 2);
     let current = [];
 
@@ -75,9 +79,6 @@ function vocabularyOnlyChineseEvidence(texts) {
   const lines = [];
   (texts || []).forEach(text => String(text || '').split(/\r?\n/).forEach(line => {
     const hanCount = (line.match(/[\u3400-\u9fff]/g) || []).length;
-    // Short worksheet rows are useful evidence for the first ten answers.
-    // Exclude full sentences so words such as 读过 in sentence 12 cannot steal
-    // an ambiguous pinyin match intended for 如果 in the vocabulary grid.
     if (hanCount >= 1 && hanCount <= 7) lines.push(line);
   }));
   return lines;
