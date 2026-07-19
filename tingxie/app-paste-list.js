@@ -20,6 +20,18 @@ function isPastedListMetadata(line) {
   return false;
 }
 
+function splitPastedAnswerLine(line) {
+  const prepared = String(line || '')
+    .replace(/(?:^|\s)(\d{1,2})\s*[.、:：)）-]\s*/g, '\n')
+    .replace(/[；;]/g, '\n')
+    .replace(/\t+/g, '\n');
+  return prepared
+    .split('\n')
+    .flatMap(part => part.split(/\s{3,}/))
+    .map(stripPastedMarkdown)
+    .filter(Boolean);
+}
+
 function cleanPastedTingXieList(rawText) {
   if (!rawText) return [];
   const candidates = [];
@@ -33,9 +45,11 @@ function cleanPastedTingXieList(rawText) {
     if (/[A-Za-z]/.test(line)) return;
     if (isPastedListMetadata(line)) return;
 
-    extractItems(line).forEach(item => {
-      const cleaned = stripPastedMarkdown(item);
-      if (!cleaned || !/[\u3400-\u9fff]/.test(cleaned)) return;
+    // Do not use the OCR line cleaner here: it intentionally strips Chinese
+    // numerals used as worksheet numbering, which would corrupt real answers
+    // such as 五颗星 and 一座山.
+    splitPastedAnswerLine(line).forEach(cleaned => {
+      if (!/[\u3400-\u9fff]/.test(cleaned)) return;
       if (isPastedListMetadata(cleaned)) return;
       candidates.push(cleaned);
     });
