@@ -61,6 +61,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   try {
     await loadAccuracyScript('app-ocr-accuracy.js?v=20260719-6', 'tingxieOcrAccuracy');
     await loadAccuracyScript('app-ocr-region-fix.js?v=20260719-6', 'tingxieOcrRegionFix');
+    await loadAccuracyScript('app-ocr-evidence-fix.js?v=20260719-6', 'tingxieOcrEvidenceFix');
     await loadAccuracyScript('app-ocr-sentence-fix.js?v=20260719-6', 'tingxieOcrSentenceFix');
     markAccuracyReady();
   } catch {
