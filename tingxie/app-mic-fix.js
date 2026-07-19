@@ -1,6 +1,8 @@
 'use strict';
 
-const TINGXIE_MIC_FIX_VERSION = '20260720-1';
+const TINGXIE_MIC_FIX_VERSION = '20260720-2';
+let voiceListeningTimer = null;
+let voiceListeningWatchdog = null;
 
 function isChromeOnIOS() {
   return /CriOS/i.test(navigator.userAgent || '');
@@ -13,9 +15,17 @@ function microphoneSettingsHint() {
   return 'Allow microphone access for this site in your browser settings, then reload the page.';
 }
 
+function stopVoiceListeningTimers() {
+  clearTimeout(voiceListeningTimer);
+  voiceListeningTimer = null;
+  clearInterval(voiceListeningWatchdog);
+  voiceListeningWatchdog = null;
+}
+
 function resetVoiceNextButton() {
   state.voiceEnabled = false;
   state.microphoneCheckPending = false;
+  stopVoiceListeningTimers();
   const button = $('voiceNextButton');
   if (button) {
     button.disabled = false;
@@ -73,7 +83,7 @@ function microphoneFailureMessage(result) {
   }
 }
 
-createRecognition = function createRecognitionWithDiagnostics() {
+function createDiagnosticRecognition() {
   if (!recognitionSupported()) return null;
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new Recognition();
@@ -145,31 +155,65 @@ createRecognition = function createRecognitionWithDiagnostics() {
 
   recognition.onend = () => {
     state.recognitionActive = false;
-    if (state.voiceEnabled && !state.isSpeaking && panels.dictation.classList.contains('active')) {
-      setTimeout(startListening, 450);
+    if (state.voiceEnabled && panels.dictation.classList.contains('active')) {
+      voiceListeningTimer = setTimeout(scheduleDiagnosticListening, 450);
     }
   };
 
   return recognition;
-};
+}
 
-startListening = function startListeningWithDiagnostics() {
-  if (!state.voiceEnabled || state.isSpeaking || !panels.dictation.classList.contains('active')) return;
+function startDiagnosticListening() {
+  if (!state.voiceEnabled || state.isSpeaking || !panels.dictation.classList.contains('active')) return false;
   if (!recognitionSupported()) {
     resetVoiceNextButton();
     setVoiceStatus('error', 'This browser does not support web voice commands. Use the Next button.');
-    return;
+    return false;
   }
-  if (state.recognitionActive) return;
+  if (state.recognitionActive) return true;
 
-  state.recognition = createRecognition();
+  state.recognition = createDiagnosticRecognition();
   try {
     state.recognition.start();
+    return true;
   } catch (error) {
     state.recognitionActive = false;
     setVoiceStatus('error', `Voice listening could not start${error?.message ? `: ${error.message}` : '.'} Tap the microphone button again.`);
+    return false;
   }
-};
+}
+
+function scheduleDiagnosticListening() {
+  clearTimeout(voiceListeningTimer);
+  voiceListeningTimer = null;
+  if (!state.voiceEnabled || !panels.dictation.classList.contains('active')) return;
+
+  if (state.isSpeaking) {
+    setVoiceStatus('speaking', 'Waiting for the spoken word to finish before listening…');
+    voiceListeningTimer = setTimeout(scheduleDiagnosticListening, 120);
+    return;
+  }
+
+  startDiagnosticListening();
+}
+
+function startVoiceListeningWatchdog() {
+  clearInterval(voiceListeningWatchdog);
+  voiceListeningWatchdog = setInterval(() => {
+    if (!state.voiceEnabled || !panels.dictation.classList.contains('active')) return;
+    if (!state.isSpeaking && !state.recognitionActive) scheduleDiagnosticListening();
+  }, 700);
+}
+
+// Best-effort replacement for calls made by the original modules. The local
+// functions above are also called directly, so the diagnostic flow does not
+// depend on cross-script function rebinding.
+try {
+  createRecognition = createDiagnosticRecognition;
+  startListening = startDiagnosticListening;
+} catch {
+  // Older WebKit builds may keep the original global function bindings.
+}
 
 toggleVoiceNext = async function toggleVoiceNextWithMicrophoneCheck(forceValue) {
   const nextValue = typeof forceValue === 'boolean' ? forceValue : !state.voiceEnabled;
@@ -177,6 +221,7 @@ toggleVoiceNext = async function toggleVoiceNextWithMicrophoneCheck(forceValue) 
   if (!nextValue) {
     state.voiceEnabled = false;
     state.microphoneCheckPending = false;
+    stopVoiceListeningTimers();
     $('voiceNextButton').disabled = false;
     $('voiceNextButton').textContent = '🎤 Enable voice “next”';
     stopRecognition();
@@ -209,15 +254,17 @@ toggleVoiceNext = async function toggleVoiceNextWithMicrophoneCheck(forceValue) 
   state.voiceEnabled = true;
   button.disabled = false;
   button.textContent = '⏸ Stop voice “next”';
-  setVoiceStatus('listening', 'Microphone access confirmed. Starting speech recognition…');
-  startListening();
+  setVoiceStatus('listening', 'Microphone access confirmed. Waiting for the spoken word to finish…');
+  startVoiceListeningWatchdog();
+  scheduleDiagnosticListening();
 };
 
 window.__tingxieMicrophoneDiagnostics = {
   version: TINGXIE_MIC_FIX_VERSION,
   verifyMicrophoneAccess,
   microphoneFailureMessage,
-  isChromeOnIOS
+  isChromeOnIOS,
+  scheduleDiagnosticListening
 };
 
 document.documentElement.dataset.tingxieMicDiagnostics = 'true';
