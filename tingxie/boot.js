@@ -35,29 +35,34 @@ function markAccuracyReady() {
   if (status?.dataset.ready === 'true') status.textContent = 'App ready. High-accuracy OCR loaded.';
 }
 
+function loadAccuracyScript(src, dataName) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.dataset[dataName] = 'true';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
 // Load the accuracy layers after the normal app has attached its event handlers.
 // The click handler resolves runOcr at click time, so the overrides are ready well
 // before a user can choose and scan a photo.
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   // The original deterministic smoke test supplies a deliberately minimal OCR
-  // mock. Its purpose is the overall app flow; a separate strict regression
-  // exercises both high-accuracy layers in full.
+  // mock. Its purpose is the overall app flow; separate strict regressions
+  // exercise all high-accuracy layers in full.
   if (new URLSearchParams(location.search).get('test') === 'deterministic') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
 
-  const accuracyScript = document.createElement('script');
-  accuracyScript.src = 'app-ocr-accuracy.js?v=20260719-6';
-  accuracyScript.async = true;
-  accuracyScript.dataset.tingxieOcrAccuracy = 'true';
-  accuracyScript.onerror = showAccuracyLoadFailure;
-  accuracyScript.onload = () => {
-    const sentenceScript = document.createElement('script');
-    sentenceScript.src = 'app-ocr-sentence-fix.js?v=20260719-6';
-    sentenceScript.async = true;
-    sentenceScript.dataset.tingxieOcrSentenceFix = 'true';
-    sentenceScript.onload = markAccuracyReady;
-    sentenceScript.onerror = showAccuracyLoadFailure;
-    document.head.appendChild(sentenceScript);
-  };
-  document.head.appendChild(accuracyScript);
+  try {
+    await loadAccuracyScript('app-ocr-accuracy.js?v=20260719-6', 'tingxieOcrAccuracy');
+    await loadAccuracyScript('app-ocr-region-fix.js?v=20260719-6', 'tingxieOcrRegionFix');
+    await loadAccuracyScript('app-ocr-sentence-fix.js?v=20260719-6', 'tingxieOcrSentenceFix');
+    markAccuracyReady();
+  } catch {
+    showAccuracyLoadFailure();
+  }
 });
