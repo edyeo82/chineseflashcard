@@ -49,24 +49,28 @@
             <strong>Take or choose the 听写 list photo</strong>
             <small>The image stays in this browser.</small>
           </label>
-          <img id="sourcePreview" class="image-preview hidden" alt="Preview of spelling list">
-          <button id="scanSourceButton" class="primary-button full-width" type="button" disabled>Read words from photo</button>
+          <img id="sourcePreview" class="image-preview hidden" alt="Preview of the spelling list">
+
+          <button id="scanSourceButton" class="primary-button full-width" type="button" disabled>
+            Read words from photo
+          </button>
+          <p id="appReadyStatus" class="help-text" role="status" aria-live="polite">App loading…</p>
           <div id="sourceProgress" class="progress-block hidden" aria-live="polite">
             <div class="progress-track"><div id="sourceProgressBar" class="progress-bar"></div></div>
             <p id="sourceProgressText">Preparing OCR…</p>
           </div>
-          <p id="appReadyStatus" class="app-ready-status" data-ready="false" aria-live="polite">Loading app…</p>
         </div>
 
         <div class="card">
           <div class="field-row">
-            <label class="field-label" for="wordList">Spelling list</label>
-            <span id="wordCount" class="count-pill">0 items</span>
+            <label class="field-label" for="wordList">Words or phrases</label>
+            <span id="wordCount" class="pill">0 items</span>
           </div>
-          <textarea id="wordList" class="text-area word-list" rows="12" placeholder="One word or sentence per line"></textarea>
+          <textarea id="wordList" class="word-list" rows="14" placeholder="One word or phrase per line, for example:&#10;美丽&#10;天空&#10;坚持不懈"></textarea>
+          <p class="help-text">Check the OCR result before starting. Put one answer on each line.</p>
 
-          <details class="settings-card">
-            <summary>Voice settings</summary>
+          <details class="settings-box">
+            <summary>Voice and practice settings</summary>
             <div class="settings-grid">
               <label>
                 Mandarin voice
@@ -75,9 +79,9 @@
               <label>
                 Speaking speed
                 <select id="rateSelect" class="select-input">
-                  <option value="0.68">Slow</option>
+                  <option value="0.65">Slow</option>
                   <option value="0.82" selected>Normal</option>
-                  <option value="0.96">Faster</option>
+                  <option value="1">Fast</option>
                 </select>
               </label>
               <label>
@@ -174,28 +178,23 @@
         <div class="card">
           <div class="field-row">
             <label class="field-label" for="answerText">Detected answers</label>
-            <button id="compareButton" class="text-button" type="button">Compare again</button>
+            <button id="compareButton" class="small-button" type="button">Compare again</button>
           </div>
-          <textarea id="answerText" class="text-area" rows="12" placeholder="You can correct the detected answers here before comparing."></textarea>
+          <textarea id="answerText" class="word-list compact-list" rows="10" placeholder="One written answer per line"></textarea>
+          <div id="markSummary" class="mark-summary hidden"></div>
         </div>
       </div>
 
-      <div id="markingTableWrap" class="marking-table-wrap hidden">
-        <div class="marking-header">
+      <div id="markingTableWrap" class="results-card hidden">
+        <div class="results-heading">
           <div>
-            <p class="section-kicker">First-pass marking</p>
-            <h3>Confirm uncertain rows</h3>
+            <h3>Marking results</h3>
+            <p>Tap a status to correct the OCR or your marking.</p>
           </div>
-          <span id="scoreBadge" class="score-badge">0 / 0</span>
+          <div id="scoreBadge" class="score-badge">0 / 0</div>
         </div>
-        <p id="markSummary" class="notice hidden"></p>
-        <div class="table-scroll">
-          <table>
-            <thead><tr><th>#</th><th>Expected</th><th>Detected</th><th>Status</th><th>Confirm</th></tr></thead>
-            <tbody id="markingTableBody"></tbody>
-          </table>
-        </div>
-        <button id="saveMarkingButton" class="accent-button full-width" type="button">Save marking and review mistakes</button>
+        <div id="markingRows" class="marking-rows"></div>
+        <button id="saveMarkingButton" class="accent-button full-width" type="button">Save mistakes and learn them</button>
       </div>
     </section>
 
@@ -203,8 +202,9 @@
       <div class="panel-heading compact">
         <div>
           <p class="section-kicker">Step 4</p>
-          <h2 id="reviewTitle">Learn from mistakes</h2>
+          <h2 id="reviewTitle">Learn the wrong or missing words</h2>
         </div>
+        <span id="mistakeCount" class="pill">0 items</span>
       </div>
 
       <div id="perfectCard" class="celebration-card hidden">
