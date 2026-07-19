@@ -35,8 +35,8 @@ async function waitForLiveDeployment() {
         fetch(`${BASE_URL}app-mic-fix.js?mic-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
       ]);
       const [boot, module] = await Promise.all([bootResponse.text(), moduleResponse.text()]);
-      if (bootResponse.ok && moduleResponse.ok && boot.includes('20260720-1') && module.includes('TINGXIE_MIC_FIX_VERSION')) return;
-      last = `boot=${bootResponse.status}, module=${moduleResponse.status}, version=${boot.includes('20260720-1')}`;
+      if (bootResponse.ok && moduleResponse.ok && boot.includes('20260720-3') && module.includes("TINGXIE_MIC_FIX_VERSION = '20260720-3'")) return;
+      last = `boot=${bootResponse.status}, module=${moduleResponse.status}, version=${boot.includes('20260720-3')}`;
     } catch (error) {
       last = error.message;
     }
@@ -159,7 +159,7 @@ async function runScenario(browser, scenario) {
     }
 
     if (scenario === 'service-blocked') {
-      await page.waitForFunction(() => window.__microphoneTest?.recognitionStarts === 1);
+      await page.waitForFunction(() => window.__microphoneTest?.recognitionStarts === 1, null, { timeout: 10000 });
       await page.waitForTimeout(80);
       const status = await page.locator('#voiceStatus').innerText();
       console.log(`SERVICE_BLOCKED_STATUS: ${status}`);
@@ -173,7 +173,7 @@ async function runScenario(browser, scenario) {
     }
 
     if (scenario === 'success') {
-      await page.waitForFunction(() => window.__microphoneTest?.recognitionStarts === 1);
+      await page.waitForFunction(() => window.__microphoneTest?.recognitionStarts === 1, null, { timeout: 10000 });
       await page.waitForTimeout(80);
       const status = await page.locator('#voiceStatus').innerText();
       console.log(`SUCCESS_STATUS: ${status}`);
@@ -189,7 +189,10 @@ async function runScenario(browser, scenario) {
     await page.screenshot({ path: `/tmp/tingxie-microphone-${scenario}.png`, fullPage: true });
   } catch (error) {
     const status = await page.locator('#voiceStatus').innerText().catch(() => 'unavailable');
-    const state = await page.evaluate(() => window.__microphoneTest).catch(() => null);
+    const state = await page.evaluate(() => ({
+      test: window.__microphoneTest,
+      app: window.__tingxieMicrophoneDiagnostics?.getState?.()
+    })).catch(() => null);
     await page.screenshot({ path: `/tmp/tingxie-microphone-${scenario}-failure.png`, fullPage: true }).catch(() => {});
     throw new Error(`${error.stack || error}\nScenario: ${scenario}\nStatus: ${status}\nState: ${JSON.stringify(state)}\nBrowser errors:\n${errors.join('\n')}`);
   } finally {
