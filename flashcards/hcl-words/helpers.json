@@ -1,0 +1,892 @@
+[
+  [
+    "雨衣",
+    "yǔ yī",
+    "raincoat"
+  ],
+  [
+    "五个",
+    "wǔ gè",
+    "five of something"
+  ],
+  [
+    "一只鱼",
+    "yì zhī yú",
+    "one fish"
+  ],
+  [
+    "我的牙",
+    "wǒ de yá",
+    "my tooth / teeth"
+  ],
+  [
+    "大雨",
+    "dà yǔ",
+    "heavy rain"
+  ],
+  [
+    "一匹马",
+    "yì pǐ mǎ",
+    "one horse"
+  ],
+  [
+    "课本",
+    "kè běn",
+    "textbook"
+  ],
+  [
+    "粉红",
+    "fěn hóng",
+    "pink"
+  ],
+  [
+    "礼貌",
+    "lǐ mào",
+    "politeness"
+  ],
+  [
+    "螃蟹",
+    "páng xiè",
+    "crab"
+  ],
+  [
+    "蝗虫",
+    "huáng chóng",
+    "locust"
+  ],
+  [
+    "蝴蝶",
+    "hú dié",
+    "butterfly"
+  ],
+  [
+    "蜻蜓",
+    "qīng tíng",
+    "dragonfly"
+  ],
+  [
+    "蜜蜂",
+    "mì fēng",
+    "bee"
+  ],
+  [
+    "蜘蛛",
+    "zhī zhū",
+    "spider"
+  ],
+  [
+    "蚂蚁",
+    "mǎ yǐ",
+    "ant"
+  ],
+  [
+    "蚊子",
+    "wén zi",
+    "mosquito"
+  ],
+  [
+    "苍蝇",
+    "cāng ying",
+    "fly"
+  ],
+  [
+    "爸爸妈妈",
+    "bà ba mā ma",
+    "father and mother"
+  ],
+  [
+    "弟弟",
+    "dì di",
+    "younger brother"
+  ],
+  [
+    "她的书",
+    "tā de shū",
+    "her book"
+  ],
+  [
+    "我不哭",
+    "wǒ bù kū",
+    "I do not cry"
+  ],
+  [
+    "喝水",
+    "hē shuǐ",
+    "drink water"
+  ],
+  [
+    "洗手",
+    "xǐ shǒu",
+    "wash hands"
+  ],
+  [
+    "可以",
+    "kě yǐ",
+    "can / may"
+  ],
+  [
+    "哥哥",
+    "gē ge",
+    "older brother"
+  ],
+  [
+    "巴士",
+    "bā shì",
+    "bus"
+  ],
+  [
+    "车子",
+    "chē zi",
+    "car / vehicle"
+  ],
+  [
+    "读书",
+    "dú shū",
+    "study / read"
+  ],
+  [
+    "吃饭",
+    "chī fàn",
+    "eat a meal"
+  ],
+  [
+    "老师",
+    "lǎo shī",
+    "teacher"
+  ],
+  [
+    "书包",
+    "shū bāo",
+    "school bag"
+  ],
+  [
+    "孩子",
+    "hái zi",
+    "child"
+  ],
+  [
+    "早安",
+    "zǎo ān",
+    "good morning"
+  ],
+  [
+    "三点半",
+    "sān diǎn bàn",
+    "half past three"
+  ],
+  [
+    "自己",
+    "zì jǐ",
+    "oneself"
+  ],
+  [
+    "看见",
+    "kàn jiàn",
+    "see"
+  ],
+  [
+    "东西",
+    "dōng xi",
+    "things"
+  ],
+  [
+    "地方",
+    "dì fang",
+    "place"
+  ],
+  [
+    "今天",
+    "jīn tiān",
+    "today"
+  ],
+  [
+    "上午",
+    "shàng wǔ",
+    "morning"
+  ],
+  [
+    "小鸟",
+    "xiǎo niǎo",
+    "little bird"
+  ],
+  [
+    "华文",
+    "huá wén",
+    "Chinese language"
+  ],
+  [
+    "回家",
+    "huí jiā",
+    "go home"
+  ],
+  [
+    "喜欢",
+    "xǐ huān",
+    "like"
+  ],
+  [
+    "写字",
+    "xiě zì",
+    "write characters"
+  ],
+  [
+    "画画",
+    "huà huà",
+    "draw pictures"
+  ],
+  [
+    "开关",
+    "kāi guān",
+    "switch / open and close"
+  ],
+  [
+    "学生",
+    "xué shēng",
+    "student"
+  ],
+  [
+    "同学",
+    "tóng xué",
+    "classmate"
+  ],
+  [
+    "学习",
+    "xué xí",
+    "learn / study"
+  ],
+  [
+    "朋友",
+    "péng you",
+    "friend"
+  ],
+  [
+    "白云",
+    "bái yún",
+    "white clouds"
+  ],
+  [
+    "月亮",
+    "yuè liang",
+    "moon"
+  ],
+  [
+    "左边",
+    "zuǒ biān",
+    "left side"
+  ],
+  [
+    "右边",
+    "yòu biān",
+    "right side"
+  ],
+  [
+    "中间",
+    "zhōng jiān",
+    "middle"
+  ],
+  [
+    "前面",
+    "qián miàn",
+    "in front"
+  ],
+  [
+    "后面",
+    "hòu miàn",
+    "behind"
+  ],
+  [
+    "眼睛",
+    "yǎn jing",
+    "eyes"
+  ],
+  [
+    "打球",
+    "dǎ qiú",
+    "play ball"
+  ],
+  [
+    "冲凉",
+    "chōng liáng",
+    "take a shower"
+  ],
+  [
+    "刷牙",
+    "shuā yá",
+    "brush teeth"
+  ],
+  [
+    "毛巾",
+    "máo jīn",
+    "towel"
+  ],
+  [
+    "身体",
+    "shēn tǐ",
+    "body"
+  ],
+  [
+    "跑步",
+    "pǎo bù",
+    "run / jogging"
+  ],
+  [
+    "房间",
+    "fáng jiān",
+    "room"
+  ],
+  [
+    "一件衣服",
+    "yí jiàn yī fu",
+    "a piece of clothing"
+  ],
+  [
+    "一条鱼",
+    "yì tiáo yú",
+    "one fish"
+  ],
+  [
+    "红色",
+    "hóng sè",
+    "red colour"
+  ],
+  [
+    "收拾",
+    "shōu shi",
+    "tidy up"
+  ],
+  [
+    "做功课",
+    "zuò gōng kè",
+    "do homework"
+  ],
+  [
+    "好朋友",
+    "hǎo péng you",
+    "good friend"
+  ],
+  [
+    "父母",
+    "fù mǔ",
+    "parents"
+  ],
+  [
+    "爷爷奶奶",
+    "yé ye nǎi nai",
+    "grandfather and grandmother"
+  ],
+  [
+    "干净",
+    "gān jìng",
+    "clean"
+  ],
+  [
+    "听见",
+    "tīng jiàn",
+    "hear"
+  ],
+  [
+    "声音",
+    "shēng yīn",
+    "sound / voice"
+  ],
+  [
+    "鸡饭",
+    "jī fàn",
+    "chicken rice"
+  ],
+  [
+    "青菜",
+    "qīng cài",
+    "vegetables"
+  ],
+  [
+    "喝汤",
+    "hē tāng",
+    "drink soup"
+  ],
+  [
+    "很饿",
+    "hěn è",
+    "very hungry"
+  ],
+  [
+    "很饱",
+    "hěn bǎo",
+    "very full"
+  ],
+  [
+    "果汁",
+    "guǒ zhī",
+    "fruit juice"
+  ],
+  [
+    "飞机",
+    "fēi jī",
+    "airplane"
+  ],
+  [
+    "最喜欢",
+    "zuì xǐ huān",
+    "like the most"
+  ],
+  [
+    "昨天",
+    "zuó tiān",
+    "yesterday"
+  ],
+  [
+    "明天",
+    "míng tiān",
+    "tomorrow"
+  ],
+  [
+    "晚上",
+    "wǎn shang",
+    "night"
+  ],
+  [
+    "庆祝",
+    "qìng zhù",
+    "celebrate"
+  ],
+  [
+    "节日",
+    "jié rì",
+    "festival"
+  ],
+  [
+    "快乐",
+    "kuài lè",
+    "happy"
+  ],
+  [
+    "上课",
+    "shàng kè",
+    "attend class"
+  ],
+  [
+    "天气",
+    "tiān qì",
+    "weather"
+  ],
+  [
+    "故事",
+    "gù shi",
+    "story"
+  ],
+  [
+    "因为",
+    "yīn wèi",
+    "because"
+  ],
+  [
+    "为了",
+    "wèi le",
+    "in order to"
+  ],
+  [
+    "所以",
+    "suǒ yǐ",
+    "so / therefore"
+  ],
+  [
+    "帮忙",
+    "bāng máng",
+    "help"
+  ],
+  [
+    "谢谢",
+    "xiè xie",
+    "thank you"
+  ],
+  [
+    "对不起",
+    "duì bù qǐ",
+    "sorry"
+  ],
+  [
+    "没关系",
+    "méi guān xi",
+    "it is okay"
+  ],
+  [
+    "生日",
+    "shēng rì",
+    "birthday"
+  ],
+  [
+    "学校",
+    "xué xiào",
+    "school"
+  ],
+  [
+    "放学",
+    "fàng xué",
+    "after school"
+  ],
+  [
+    "上学",
+    "shàng xué",
+    "go to school"
+  ],
+  [
+    "功课",
+    "gōng kè",
+    "homework"
+  ],
+  [
+    "课室",
+    "kè shì",
+    "classroom"
+  ],
+  [
+    "考试",
+    "kǎo shì",
+    "exam"
+  ],
+  [
+    "复习",
+    "fù xí",
+    "revise"
+  ],
+  [
+    "练习",
+    "liàn xí",
+    "practice"
+  ],
+  [
+    "希望",
+    "xī wàng",
+    "hope"
+  ],
+  [
+    "失望",
+    "shī wàng",
+    "disappointed"
+  ],
+  [
+    "努力",
+    "nǔ lì",
+    "work hard"
+  ],
+  [
+    "进步",
+    "jìn bù",
+    "improve"
+  ],
+  [
+    "习惯",
+    "xí guàn",
+    "habit"
+  ],
+  [
+    "认真",
+    "rèn zhēn",
+    "serious / attentive"
+  ],
+  [
+    "准时",
+    "zhǔn shí",
+    "punctual"
+  ],
+  [
+    "突然",
+    "tū rán",
+    "suddenly"
+  ],
+  [
+    "原来",
+    "yuán lái",
+    "it turns out"
+  ],
+  [
+    "邻居",
+    "lín jū",
+    "neighbour"
+  ],
+  [
+    "安全",
+    "ān quán",
+    "safety"
+  ],
+  [
+    "过马路",
+    "guò mǎ lù",
+    "cross the road"
+  ],
+  [
+    "小心",
+    "xiǎo xīn",
+    "be careful"
+  ],
+  [
+    "开心",
+    "kāi xīn",
+    "happy"
+  ],
+  [
+    "伤心",
+    "shāng xīn",
+    "sad"
+  ],
+  [
+    "担心",
+    "dān xīn",
+    "worried"
+  ],
+  [
+    "放心",
+    "fàng xīn",
+    "feel assured"
+  ],
+  [
+    "用心",
+    "yòng xīn",
+    "do carefully"
+  ],
+  [
+    "关心",
+    "guān xīn",
+    "care about"
+  ],
+  [
+    "如果",
+    "rú guǒ",
+    "if"
+  ],
+  [
+    "然后",
+    "rán hòu",
+    "then"
+  ],
+  [
+    "最后",
+    "zuì hòu",
+    "finally"
+  ],
+  [
+    "首先",
+    "shǒu xiān",
+    "firstly"
+  ],
+  [
+    "接着",
+    "jiē zhe",
+    "next"
+  ],
+  [
+    "可能",
+    "kě néng",
+    "possible / may"
+  ],
+  [
+    "应该",
+    "yīng gāi",
+    "should"
+  ],
+  [
+    "办法",
+    "bàn fǎ",
+    "method / way"
+  ],
+  [
+    "解决",
+    "jiě jué",
+    "solve"
+  ],
+  [
+    "原因",
+    "yuán yīn",
+    "reason"
+  ],
+  [
+    "结果",
+    "jié guǒ",
+    "result"
+  ],
+  [
+    "经过",
+    "jīng guò",
+    "after / process"
+  ],
+  [
+    "终于",
+    "zhōng yú",
+    "finally"
+  ],
+  [
+    "责任",
+    "zé rèn",
+    "responsibility"
+  ],
+  [
+    "诚实",
+    "chéng shí",
+    "honest"
+  ],
+  [
+    "惭愧",
+    "cán kuì",
+    "ashamed"
+  ],
+  [
+    "后悔",
+    "hòu huǐ",
+    "regret"
+  ],
+  [
+    "提醒",
+    "tí xǐng",
+    "remind"
+  ],
+  [
+    "阻止",
+    "zǔ zhǐ",
+    "stop / prevent"
+  ],
+  [
+    "保护",
+    "bǎo hù",
+    "protect"
+  ],
+  [
+    "环境",
+    "huán jìng",
+    "environment"
+  ],
+  [
+    "体谅",
+    "tǐ liàng",
+    "be considerate"
+  ],
+  [
+    "坚持",
+    "jiān chí",
+    "persist"
+  ],
+  [
+    "珍惜",
+    "zhēn xī",
+    "treasure"
+  ],
+  [
+    "信任",
+    "xìn rèn",
+    "trust"
+  ],
+  [
+    "沟通",
+    "gōu tōng",
+    "communicate"
+  ],
+  [
+    "误会",
+    "wù huì",
+    "misunderstanding"
+  ],
+  [
+    "压力",
+    "yā lì",
+    "pressure"
+  ],
+  [
+    "鼓励",
+    "gǔ lì",
+    "encourage"
+  ],
+  [
+    "自信",
+    "zì xìn",
+    "confidence"
+  ],
+  [
+    "参加",
+    "cān jiā",
+    "participate"
+  ],
+  [
+    "活动",
+    "huó dòng",
+    "activity"
+  ],
+  [
+    "意义",
+    "yì yì",
+    "meaning / significance"
+  ],
+  [
+    "帮助别人",
+    "bāng zhù bié rén",
+    "help others"
+  ],
+  [
+    "承担",
+    "chéng dān",
+    "undertake / bear"
+  ],
+  [
+    "克服",
+    "kè fú",
+    "overcome"
+  ],
+  [
+    "困难",
+    "kùn nan",
+    "difficulty"
+  ],
+  [
+    "贡献",
+    "gòng xiàn",
+    "contribute"
+  ],
+  [
+    "社会",
+    "shè huì",
+    "society"
+  ],
+  [
+    "科技",
+    "kē jì",
+    "technology"
+  ],
+  [
+    "网络",
+    "wǎng luò",
+    "internet"
+  ],
+  [
+    "沉迷",
+    "chén mí",
+    "be addicted"
+  ],
+  [
+    "判断",
+    "pàn duàn",
+    "judge / decide"
+  ],
+  [
+    "可靠",
+    "kě kào",
+    "reliable"
+  ],
+  [
+    "面对",
+    "miàn duì",
+    "face / confront"
+  ],
+  [
+    "挑战",
+    "tiǎo zhàn",
+    "challenge"
+  ],
+  [
+    "放弃",
+    "fàng qì",
+    "give up"
+  ],
+  [
+    "使用",
+    "shǐ yòng",
+    "use"
+  ]
+]

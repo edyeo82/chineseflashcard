@@ -1,0 +1,129 @@
+name: Learning hub test
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'flashcards/**'
+      - 'tingxie/boot.js'
+      - 'tests/learning-hub.mjs'
+      - 'tests/live-learning-hub.mjs'
+      - '.github/workflows/learning-hub.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'flashcards/**'
+      - 'tingxie/boot.js'
+      - 'tests/learning-hub.mjs'
+      - 'tests/live-learning-hub.mjs'
+      - '.github/workflows/learning-hub.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  hub-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Check test syntax
+        run: |
+          node --check tests/learning-hub.mjs
+          node --check tests/live-learning-hub.mjs
+          node --check tingxie/boot.js
+
+      - name: Test hub and sibling apps
+        run: node tests/learning-hub.mjs
+
+      - name: Upload hub evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: learning-hub-evidence
+          path: |
+            /tmp/learning-hub-pass.png
+            /tmp/learning-hub-failure.png
+            /tmp/learning-hub-error.txt
+          if-no-files-found: ignore
+
+  verify-live-hub:
+    if: github.event_name == 'push'
+    needs: hub-flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Mark public hub verification pending
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'pending',
+              context: 'learning-hub-live',
+              description: 'Testing deployed hub and sibling apps',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install live-test browser
+        run: |
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Test public learning hub
+        id: live_test
+        continue-on-error: true
+        run: node tests/live-learning-hub.mjs
+
+      - name: Upload public hub evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: learning-hub-live-evidence
+          path: |
+            /tmp/learning-hub-live-pass.png
+            /tmp/learning-hub-live-failure.png
+            /tmp/learning-hub-live-error.txt
+          if-no-files-found: ignore
+
+      - name: Publish public hub result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = '${{ steps.live_test.outcome }}' === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: passed ? 'success' : 'failure',
+              context: 'learning-hub-live',
+              description: passed ? 'Deployed hub and sibling apps passed' : 'Deployed learning hub verification failed',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - name: Fail when public hub verification failed
+        if: steps.live_test.outcome != 'success'
+        run: exit 1

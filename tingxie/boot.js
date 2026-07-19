@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260719-7';
+const TINGXIE_BOOT_VERSION = '20260719-8';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -21,6 +21,35 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(registrations => {
     registrations.forEach(registration => registration.unregister());
   }).catch(() => {});
+}
+
+function installLearningHubLink() {
+  const titleBlock = document.querySelector('.app-header > div');
+  if (!titleBlock || document.getElementById('learningHubLink')) return;
+
+  const style = document.createElement('style');
+  style.dataset.tingxieHubLink = 'true';
+  style.textContent = `
+    #learningHubLink {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      color: var(--primary-dark);
+      font-size: .82rem;
+      font-weight: 850;
+      text-decoration: none;
+    }
+    #learningHubLink:hover { text-decoration: underline; }
+  `;
+  document.head.appendChild(style);
+
+  const link = document.createElement('a');
+  link.id = 'learningHubLink';
+  link.href = '../';
+  link.textContent = '← All learning apps';
+  titleBlock.prepend(link);
+  document.documentElement.dataset.tingxieHubLink = 'true';
 }
 
 function showAccuracyLoadFailure() {
@@ -58,6 +87,8 @@ function loadAccuracyScript(src, dataName) {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  installLearningHubLink();
+
   try {
     await loadAccuracyScript('app-paste-list.js?v=20260719-7', 'tingxiePasteList');
   } catch {
