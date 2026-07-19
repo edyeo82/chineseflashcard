@@ -27,10 +27,10 @@ jobs:
           npx playwright install --with-deps chromium >/dev/null
       - name: Check regression syntax
         run: |
-          node --check tingxie/tests/measured-pinyin-regression.mjs
+          node --check tingxie/tests/measured-pinyin-layout.mjs
           node --check tingxie/tests/exact-photo-regression.mjs
       - name: Run measured pinyin-box regression
-        run: node tingxie/tests/measured-pinyin-regression.mjs
+        run: node tingxie/tests/measured-pinyin-layout.mjs
       - name: Run supplied-photo OCR-output regression
         run: node tingxie/tests/exact-photo-regression.mjs
       - name: Upload measured-photo evidence
