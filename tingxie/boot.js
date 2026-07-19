@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260719-8';
+const TINGXIE_BOOT_VERSION = '20260720-3';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -68,6 +68,14 @@ function showPasteLoadFailure() {
   }
 }
 
+function showMicrophoneLoadFailure() {
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = 'The microphone diagnostic tool could not load. Reload the page.';
+    toast.classList.add('show');
+  }
+}
+
 function markAccuracyReady() {
   document.documentElement.dataset.tingxieOcrAccuracy = 'true';
   const status = document.getElementById('appReadyStatus');
@@ -88,6 +96,12 @@ function loadAccuracyScript(src, dataName) {
 
 window.addEventListener('DOMContentLoaded', async () => {
   installLearningHubLink();
+
+  try {
+    await loadAccuracyScript('app-mic-fix.js?v=20260720-3', 'tingxieMicFix');
+  } catch {
+    showMicrophoneLoadFailure();
+  }
 
   try {
     await loadAccuracyScript('app-paste-list.js?v=20260719-7', 'tingxiePasteList');
