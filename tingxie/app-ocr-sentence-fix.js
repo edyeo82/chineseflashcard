@@ -40,13 +40,14 @@ function correctSentenceUsingPinyin(sentence, syllables, lexicon) {
     for (let start = 0; start <= syllables.length - length; start += 1) {
       const spokenKey = ocrPinyinKey(syllables.slice(start, start + length).join(' '));
       const pinyinScore = ocrSimilarity(spokenKey, entry.key);
-      if (pinyinScore < 0.84) continue;
+      const trustedEntry = (entry.priority || 1) >= 3;
+      if (pinyinScore < (trustedEntry ? 0.72 : 0.84)) continue;
 
       const written = positions.slice(start, start + length).map(item => item.character).join('');
       if (written === entry.hanzi) continue;
       const overlap = sentenceCharacterOverlap(written, entry.hanzi);
-      if (overlap < 0.5) continue;
-      if ((entry.priority || 1) < 2 && pinyinScore < 0.95) continue;
+      if (overlap < (trustedEntry ? 0.5 : 0.6)) continue;
+      if (!trustedEntry && pinyinScore < 0.95) continue;
 
       candidates.push({
         start,
@@ -79,10 +80,20 @@ function looksLikeNaturalSentence(item) {
   if (hanCount < 8) return true;
   if (/[，！？；]/.test(item)) return true;
 
-  // OCR may concatenate a whole numbered vocabulary row into an 8–10 character
-  // string. Genuine school spelling sentences normally contain pronouns,
-  // particles or verb constructions; the concatenated grids do not.
   return /(我|我们|妈妈|的|是|不|可以|都会|认为|开着|睡觉|读过|购物|时候|时)/.test(item);
+}
+
+function choosePinyinLineForSentence(longPinyinLines, usedIndexes, hanCount) {
+  let best = null;
+  longPinyinLines.forEach((syllables, index) => {
+    if (usedIndexes.has(index)) return;
+    const lengthDifference = Math.abs(syllables.length - hanCount);
+    const score = lengthDifference * 100 + index;
+    if (!best || score < best.score) best = { index, syllables, score, lengthDifference };
+  });
+  if (!best || best.lengthDifference > 1) return null;
+  usedIndexes.add(best.index);
+  return best.syllables;
 }
 
 extractItems = function extractItemsWithSentencePinyinFix(input) {
@@ -91,12 +102,12 @@ extractItems = function extractItemsWithSentencePinyinFix(input) {
 
   const filteredItems = items.filter(looksLikeNaturalSentence);
   const longPinyinLines = extractLongPinyinLines(input.chineseTexts).filter(syllables => syllables.length >= 10);
-  let sentenceIndex = 0;
+  const usedPinyinLines = new Set();
+
   return filteredItems.map(item => {
     const hanCount = sentenceHanPositions(item).length;
     if (hanCount < 8) return item;
-    const syllables = longPinyinLines[sentenceIndex] || null;
-    sentenceIndex += 1;
+    const syllables = choosePinyinLineForSentence(longPinyinLines, usedPinyinLines, hanCount);
     return correctSentenceUsingPinyin(item, syllables, input.lexicon);
   });
 };
@@ -104,5 +115,6 @@ extractItems = function extractItemsWithSentencePinyinFix(input) {
 window.__tingxieSentenceFix = {
   correctSentenceUsingPinyin,
   looksLikeNaturalSentence,
+  choosePinyinLineForSentence,
   extractItems: input => extractItems(input)
 };
