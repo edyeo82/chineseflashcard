@@ -159,8 +159,11 @@ async function runScenario(browser, scenario) {
     }
 
     if (scenario === 'service-blocked') {
-      await page.waitForFunction(() => document.querySelector('#voiceStatus')?.textContent.includes('speech-recognition service'));
+      await page.waitForFunction(() => window.__microphoneTest?.recognitionStarts === 1);
+      await page.waitForTimeout(80);
       const status = await page.locator('#voiceStatus').innerText();
+      console.log(`SERVICE_BLOCKED_STATUS: ${status}`);
+      assert.match(status, /speech-recognition service/i);
       assert.match(status, /Settings → Chrome → Speech Recognition/);
       assert.doesNotMatch(status, /Microphone permission was not granted/);
       const state = await page.evaluate(() => window.__microphoneTest);
@@ -170,7 +173,11 @@ async function runScenario(browser, scenario) {
     }
 
     if (scenario === 'success') {
-      await page.waitForFunction(() => document.querySelector('#voiceStatus')?.textContent.includes('Microphone is active'));
+      await page.waitForFunction(() => window.__microphoneTest?.recognitionStarts === 1);
+      await page.waitForTimeout(80);
+      const status = await page.locator('#voiceStatus').innerText();
+      console.log(`SUCCESS_STATUS: ${status}`);
+      assert.match(status, /Microphone is active/i);
       assert.equal(await page.locator('#voiceNextButton').innerText(), '⏸ Stop voice “next”');
       const state = await page.evaluate(() => window.__microphoneTest);
       assert.equal(state.getUserMediaCalls, 1);
@@ -180,6 +187,11 @@ async function runScenario(browser, scenario) {
 
     assert.deepEqual(errors, []);
     await page.screenshot({ path: `/tmp/tingxie-microphone-${scenario}.png`, fullPage: true });
+  } catch (error) {
+    const status = await page.locator('#voiceStatus').innerText().catch(() => 'unavailable');
+    const state = await page.evaluate(() => window.__microphoneTest).catch(() => null);
+    await page.screenshot({ path: `/tmp/tingxie-microphone-${scenario}-failure.png`, fullPage: true }).catch(() => {});
+    throw new Error(`${error.stack || error}\nScenario: ${scenario}\nStatus: ${status}\nState: ${JSON.stringify(state)}\nBrowser errors:\n${errors.join('\n')}`);
   } finally {
     await context.close();
   }
