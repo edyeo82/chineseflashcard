@@ -34,9 +34,11 @@ extractPinyinRegions = function extractPinyinRegionsFromPhonePhoto(tsv, imageWid
     const medianWidth = widths[Math.floor(widths.length / 2)] || 30;
 
     // Pinyin syllables inside one answer have a small normal-space gap, while
-    // worksheet columns have a much larger gap. Cap the word-width influence so
-    // long syllables do not accidentally merge several numbered answers.
-    const splitGap = Math.max(imageWidth * 0.04, Math.min(medianWidth * 1.35, imageWidth * 0.075), typicalHeight * 2.2);
+    // worksheet columns have a larger gap. The supplied worksheet contained a
+    // genuine column gap of 118 px; the previous 121.5 px threshold merged
+    // 车辆 and 一份. The lower adaptive factor still keeps 20–25 px syllable
+    // gaps together while separating adjacent numbered answers.
+    const splitGap = Math.max(imageWidth * 0.035, Math.min(medianWidth * 1.15, imageWidth * 0.065), typicalHeight * 2);
     let current = [];
 
     const flush = () => {
