@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff8ec">
+  <meta name="description" content="A private, browser-based Chinese 听写 practice and marking app.">
+  <title>听写小老师 · Ting Xie</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">KidoTree Learning</p>
+      <h1>听写小老师</h1>
+      <p class="subtitle">Upload → Listen → Write → Mark → Retry</p>
+    </div>
+    <button id="installButton" class="ghost-button hidden" type="button">Install</button>
+  </header>
+
+  <main class="app-shell">
+    <nav class="stepper" aria-label="Practice steps">
+      <button class="step active" data-step="setup" type="button"><span>1</span>Prepare</button>
+      <button class="step" data-step="dictation" type="button"><span>2</span>听写</button>
+      <button class="step" data-step="marking" type="button"><span>3</span>Mark</button>
+      <button class="step" data-step="review" type="button"><span>4</span>Learn</button>
+    </nav>
+
+    <section id="setupPanel" class="panel active" aria-labelledby="setupTitle">
+      <div class="panel-heading">
+        <div>
+          <p class="section-kicker">Step 1</p>
+          <h2 id="setupTitle">Prepare the spelling list</h2>
+        </div>
+        <button id="loadLastButton" class="text-button" type="button">Load last list</button>
+      </div>
+
+      <div class="two-column">
+        <div class="card">
+          <label class="field-label" for="profileName">Child / profile</label>
+          <input id="profileName" class="text-input" type="text" maxlength="30" placeholder="e.g. Kate" autocomplete="off">
+
+          <label class="upload-zone" for="sourceImage">
+            <input id="sourceImage" type="file" accept="image/*" capture="environment">
+            <span class="upload-icon">📷</span>
+            <strong>Take or choose the 听写 list photo</strong>
+            <small>The image stays in this browser.</small>
+          </label>
+          <img id="sourcePreview" class="image-preview hidden" alt="Preview of the spelling list">
+
+          <button id="scanSourceButton" class="primary-button full-width" type="button" disabled>
+            Read words from photo
+          </button>
+          <div id="sourceProgress" class="progress-block hidden" aria-live="polite">
+            <div class="progress-track"><div id="sourceProgressBar" class="progress-bar"></div></div>
+            <p id="sourceProgressText">Preparing OCR…</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="field-row">
+            <label class="field-label" for="wordList">Words or phrases</label>
+            <span id="wordCount" class="pill">0 items</span>
+          </div>
+          <textarea id="wordList" class="word-list" rows="14" placeholder="One word or phrase per line, for example:&#10;美丽&#10;天空&#10;坚持不懈"></textarea>
+          <p class="help-text">Check the OCR result before starting. Put one answer on each line.</p>
+
+          <details class="settings-box">
+            <summary>Voice and practice settings</summary>
+            <div class="settings-grid">
+              <label>
+                Mandarin voice
+                <select id="voiceSelect" class="select-input"></select>
+              </label>
+              <label>
+                Speaking speed
+                <select id="rateSelect" class="select-input">
+                  <option value="0.65">Slow</option>
+                  <option value="0.82" selected>Normal</option>
+                  <option value="1">Fast</option>
+                </select>
+              </label>
+              <label>
+                Repeat each item
+                <select id="repeatSelect" class="select-input">
+                  <option value="1" selected>Once</option>
+                  <option value="2">Twice</option>
+                  <option value="3">Three times</option>
+                </select>
+              </label>
+              <label>
+                “Next” command language
+                <select id="commandLanguage" class="select-input">
+                  <option value="en-SG" selected>English</option>
+                  <option value="zh-CN">中文</option>
+                </select>
+              </label>
+            </div>
+          </details>
+
+          <button id="startDictationButton" class="accent-button full-width" type="button" disabled>Start 听写</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="dictationPanel" class="panel" aria-labelledby="dictationTitle">
+      <div class="panel-heading compact">
+        <div>
+          <p class="section-kicker">Step 2</p>
+          <h2 id="dictationTitle">Listen and write</h2>
+        </div>
+        <button id="exitDictationButton" class="text-button" type="button">Back to list</button>
+      </div>
+
+      <div class="dictation-card">
+        <div class="session-meta">
+          <span id="sessionLabel" class="pill">Full list</span>
+          <span id="dictationProgressText">1 of 1</span>
+        </div>
+        <div class="progress-track large"><div id="dictationProgressBar" class="progress-bar"></div></div>
+
+        <div class="hidden-word" aria-label="The current spelling word is hidden">
+          <span>听</span>
+          <strong id="itemNumber">第 1 题</strong>
+          <p>The word is hidden. Listen and write it down.</p>
+        </div>
+
+        <div id="voiceStatus" class="voice-status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span>Tap “Enable voice next” to allow the microphone.</span>
+        </div>
+        <p id="heardCommand" class="heard-command" aria-live="polite"></p>
+
+        <div class="control-grid">
+          <button id="previousButton" class="secondary-button" type="button">← Previous</button>
+          <button id="speakButton" class="primary-button speak-button" type="button">🔊 Say again</button>
+          <button id="nextButton" class="accent-button" type="button">Next →</button>
+        </div>
+        <button id="voiceNextButton" class="ghost-button full-width" type="button">🎤 Enable voice “next”</button>
+
+        <p class="command-hint">After the word is spoken, say <strong>“next”</strong>. You can also say “again,” “previous,” or “stop.”</p>
+      </div>
+    </section>
+
+    <section id="markingPanel" class="panel" aria-labelledby="markingTitle">
+      <div class="panel-heading compact">
+        <div>
+          <p class="section-kicker">Step 3</p>
+          <h2 id="markingTitle">Mark the completed 听写</h2>
+        </div>
+        <button id="skipOcrButton" class="text-button" type="button">Enter answers manually</button>
+      </div>
+
+      <div class="two-column marking-layout">
+        <div class="card">
+          <label class="upload-zone" for="answerImage">
+            <input id="answerImage" type="file" accept="image/*" capture="environment">
+            <span class="upload-icon">📝</span>
+            <strong>Take or choose the completed work</strong>
+            <small>Bright, straight photos improve recognition.</small>
+          </label>
+          <img id="answerPreview" class="image-preview hidden" alt="Preview of completed spelling work">
+          <button id="scanAnswerButton" class="primary-button full-width" type="button" disabled>Read handwritten answers</button>
+          <div id="answerProgress" class="progress-block hidden" aria-live="polite">
+            <div class="progress-track"><div id="answerProgressBar" class="progress-bar"></div></div>
+            <p id="answerProgressText">Preparing OCR…</p>
+          </div>
+          <div class="notice warning">
+            <strong>Handwriting check needed</strong>
+            <p>Browser OCR can misread handwritten Chinese. Rows marked “Check” are not counted wrong until you confirm them.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="field-row">
+            <label class="field-label" for="answerText">Detected answers</label>
+            <button id="compareButton" class="small-button" type="button">Compare again</button>
+          </div>
+          <textarea id="answerText" class="word-list compact-list" rows="10" placeholder="One written answer per line"></textarea>
+          <div id="markSummary" class="mark-summary hidden"></div>
+        </div>
+      </div>
+
+      <div id="markingTableWrap" class="results-card hidden">
+        <div class="results-heading">
+          <div>
+            <h3>Marking results</h3>
+            <p>Tap a status to correct the OCR or your marking.</p>
+          </div>
+          <div id="scoreBadge" class="score-badge">0 / 0</div>
+        </div>
+        <div id="markingRows" class="marking-rows"></div>
+        <button id="saveMarkingButton" class="accent-button full-width" type="button">Save mistakes and learn them</button>
+      </div>
+    </section>
+
+    <section id="reviewPanel" class="panel" aria-labelledby="reviewTitle">
+      <div class="panel-heading compact">
+        <div>
+          <p class="section-kicker">Step 4</p>
+          <h2 id="reviewTitle">Learn the wrong or missing words</h2>
+        </div>
+        <span id="mistakeCount" class="pill">0 items</span>
+      </div>
+
+      <div id="perfectCard" class="celebration-card hidden">
+        <div class="celebration-icon">🎉</div>
+        <h3>Perfect score!</h3>
+        <p>No wrong or missing words were recorded.</p>
+      </div>
+
+      <div id="mistakeCards" class="mistake-grid"></div>
+
+      <div class="review-actions">
+        <button id="retestButton" class="accent-button" type="button">Retest mistakes only</button>
+        <button id="newListButton" class="secondary-button" type="button">Start a new list</button>
+      </div>
+
+      <details class="history-card">
+        <summary>Recent practice history</summary>
+        <div id="historyList" class="history-list"></div>
+      </details>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

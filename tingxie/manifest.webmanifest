@@ -1,0 +1,18 @@
+{
+  "name": "听写小老师 · Ting Xie",
+  "short_name": "听写",
+  "description": "Chinese spelling practice, assisted marking, and mistake retests.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8ec",
+  "theme_color": "#fff8ec",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

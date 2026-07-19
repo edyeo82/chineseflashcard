@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ting Xie icon">
+  <rect width="512" height="512" rx="116" fill="#fff8ec"/>
+  <circle cx="256" cy="256" r="190" fill="#7855d9"/>
+  <circle cx="371" cy="141" r="54" fill="#f08a4b"/>
+  <text x="256" y="322" text-anchor="middle" font-size="238" font-weight="800" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif" fill="#ffffff">听</text>
+</svg>
