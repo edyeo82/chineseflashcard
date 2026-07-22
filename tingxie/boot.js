@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260720-3';
+const TINGXIE_BOOT_VERSION = '20260722-1';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -76,6 +76,14 @@ function showMicrophoneLoadFailure() {
   }
 }
 
+function showProfileMemoryLoadFailure() {
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = 'Child profile memory could not load. Reload the page.';
+    toast.classList.add('show');
+  }
+}
+
 function markAccuracyReady() {
   document.documentElement.dataset.tingxieOcrAccuracy = 'true';
   const status = document.getElementById('appReadyStatus');
@@ -107,6 +115,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadAccuracyScript('app-paste-list.js?v=20260719-7', 'tingxiePasteList');
   } catch {
     showPasteLoadFailure();
+  }
+
+  try {
+    await loadAccuracyScript('app-profile-memory.js?v=20260722-1', 'tingxieProfileMemory');
+  } catch {
+    showProfileMemoryLoadFailure();
   }
 
   const testMode = new URLSearchParams(location.search).get('test');
