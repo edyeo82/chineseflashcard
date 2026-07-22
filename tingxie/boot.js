@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260722-1';
+const TINGXIE_BOOT_VERSION = '20260722-2';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -52,36 +52,32 @@ function installLearningHubLink() {
   document.documentElement.dataset.tingxieHubLink = 'true';
 }
 
-function showAccuracyLoadFailure() {
+function showModuleLoadFailure(message) {
   const toast = document.getElementById('toast');
   if (toast) {
-    toast.textContent = 'High-accuracy OCR could not load. Reload the page.';
+    toast.textContent = message;
     toast.classList.add('show');
   }
+}
+
+function showAccuracyLoadFailure() {
+  showModuleLoadFailure('High-accuracy OCR could not load. Reload the page.');
 }
 
 function showPasteLoadFailure() {
-  const toast = document.getElementById('toast');
-  if (toast) {
-    toast.textContent = 'The paste-list tool could not load. Reload the page.';
-    toast.classList.add('show');
-  }
+  showModuleLoadFailure('The paste-list tool could not load. Reload the page.');
 }
 
 function showMicrophoneLoadFailure() {
-  const toast = document.getElementById('toast');
-  if (toast) {
-    toast.textContent = 'The microphone diagnostic tool could not load. Reload the page.';
-    toast.classList.add('show');
-  }
+  showModuleLoadFailure('The microphone diagnostic tool could not load. Reload the page.');
 }
 
 function showProfileMemoryLoadFailure() {
-  const toast = document.getElementById('toast');
-  if (toast) {
-    toast.textContent = 'Child profile memory could not load. Reload the page.';
-    toast.classList.add('show');
-  }
+  showModuleLoadFailure('Child profile memory could not load. Reload the page.');
+}
+
+function showListSavingLoadFailure() {
+  showModuleLoadFailure('List saving could not load. Reload the page.');
 }
 
 function markAccuracyReady() {
@@ -106,6 +102,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   installLearningHubLink();
 
   try {
+    await loadAccuracyScript('app-list-parser-fix.js?v=20260722-2', 'tingxieListParserFix');
+  } catch {
+    showListSavingLoadFailure();
+  }
+
+  try {
     await loadAccuracyScript('app-mic-fix.js?v=20260720-3', 'tingxieMicFix');
   } catch {
     showMicrophoneLoadFailure();
@@ -119,6 +121,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   try {
     await loadAccuracyScript('app-profile-memory.js?v=20260722-1', 'tingxieProfileMemory');
+    await loadAccuracyScript('app-memory-save-button.js?v=20260722-2', 'tingxieMemorySaveButton');
   } catch {
     showProfileMemoryLoadFailure();
   }

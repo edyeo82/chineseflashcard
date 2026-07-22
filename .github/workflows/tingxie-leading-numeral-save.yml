@@ -1,0 +1,132 @@
+name: Ting Xie leading numeral save
+
+on:
+  pull_request:
+    paths:
+      - 'tingxie/app-list-parser-fix.js'
+      - 'tingxie/app-memory-save-button.js'
+      - 'tingxie/boot.js'
+      - 'tingxie/index.html'
+      - 'tingxie/tests/leading-numeral-save.mjs'
+      - '.github/workflows/tingxie-leading-numeral-save.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tingxie/app-list-parser-fix.js'
+      - 'tingxie/app-memory-save-button.js'
+      - 'tingxie/boot.js'
+      - 'tingxie/index.html'
+      - 'tingxie/tests/leading-numeral-save.mjs'
+      - '.github/workflows/tingxie-leading-numeral-save.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  list-save:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check tingxie/app-list-parser-fix.js
+          node --check tingxie/app-memory-save-button.js
+          node --check tingxie/boot.js
+          node --check tingxie/tests/leading-numeral-save.mjs
+
+      - name: Test save and reload with 一份
+        run: node tingxie/tests/leading-numeral-save.mjs
+
+      - name: Upload list-save evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-leading-numeral-save-evidence
+          path: |
+            /tmp/tingxie-leading-numeral-save-pass.png
+            /tmp/tingxie-leading-numeral-save-failure.png
+            /tmp/tingxie-leading-numeral-save-error.txt
+          if-no-files-found: ignore
+
+  verify-live-list-save:
+    if: github.event_name == 'push'
+    needs: list-save
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Mark public list-save verification pending
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'pending',
+              context: 'tingxie-live-leading-numeral-save',
+              description: 'Testing deployed save of 一份 and similar words',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install live-test browser
+        run: |
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Test public list saving
+        id: live_test
+        continue-on-error: true
+        env:
+          TINGXIE_BASE_URL: https://edyeo82.github.io/chineseflashcard/tingxie/
+        run: node tingxie/tests/leading-numeral-save.mjs
+
+      - name: Upload public list-save evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-live-leading-numeral-save-evidence
+          path: |
+            /tmp/tingxie-leading-numeral-save-pass.png
+            /tmp/tingxie-leading-numeral-save-failure.png
+            /tmp/tingxie-leading-numeral-save-error.txt
+          if-no-files-found: ignore
+
+      - name: Publish public list-save result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = '${{ steps.live_test.outcome }}' === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: passed ? 'success' : 'failure',
+              context: 'tingxie-live-leading-numeral-save',
+              description: passed ? 'Deployed leading-numeral save passed' : 'Deployed leading-numeral save failed',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - name: Fail when public verification failed
+        if: steps.live_test.outcome != 'success'
+        run: exit 1
