@@ -70,8 +70,6 @@ function updateChecklistSummary() {
   const activeCount = all.filter(word => !skipped.has(wordStorageKey(word))).length;
   const summary = $('wordChecklistSummary');
   if (summary) summary.textContent = `${activeCount} active · ${skipped.size} skipped`;
-  const wordCount = $('wordCount');
-  if (wordCount) wordCount.textContent = `${activeCount} active · ${skipped.size} skipped`;
   const start = $('startDictationButton');
   if (start) start.disabled = activeCount === 0;
 }
@@ -288,7 +286,9 @@ function isMandarinVoice(voice) {
 function populateStableMandarinVoices() {
   const allVoices = window.speechSynthesis?.getVoices?.() || [];
   const mandarin = allVoices.filter(isMandarinVoice).sort((left, right) => mandarinVoiceScore(right) - mandarinVoiceScore(left));
-  state.voices = mandarin.length ? mandarin : allVoices.slice().sort((left, right) => Number(Boolean(right.localService)) - Number(Boolean(left.localService)));
+  state.voices = mandarin.length
+    ? mandarin
+    : allVoices.slice().sort((left, right) => Number(Boolean(right.localService)) - Number(Boolean(left.localService)));
 
   const select = $('voiceSelect');
   if (!select) return;
@@ -348,14 +348,15 @@ function installVoiceQualityControls() {
     <button id="recommendedVoiceButton" class="small-button" type="button">★ Use recommended Mandarin</button>
     <p>Recommended mode prefers a local Mandarin voice and avoids Cantonese voices. Exact pronunciation still depends on voices installed on this device.</p>
   `;
-  select.insertAdjacentElement('afterend', controls);
+  const voiceLabel = select.closest('label');
+  (voiceLabel || select).insertAdjacentElement('afterend', controls);
   $('testVoiceButton').addEventListener('click', speakSelectedVoicePreview);
   $('recommendedVoiceButton').addEventListener('click', chooseRecommendedVoice);
 
   const style = document.createElement('style');
   style.dataset.tingxieVoiceQuality = 'true';
   style.textContent = `
-    .voice-quality-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .voice-quality-controls { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
     .voice-quality-controls p { flex: 1 1 100%; margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.4; }
   `;
   document.head.appendChild(style);
