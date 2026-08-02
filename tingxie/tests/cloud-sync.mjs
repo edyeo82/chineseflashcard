@@ -163,7 +163,8 @@ async function runCloudSyncTest(browser) {
     assert.equal(await pageB.locator('#memoryProfileSelect option:checked').innerText(), 'Kate');
     assert.equal(await pageB.locator('#wordList').inputValue(), WORDS.join('\n'));
     assert.equal(await pageB.locator('#wordChecklistRows .word-checklist-row').first().getAttribute('class').then(value => value.includes('skipped')), true);
-    assert.match(await pageB.locator('#tingxieCloudStatus').innerText(), /Cloud is up to date|Loaded cloud profiles/);
+    const cloudStatus = await pageB.locator('#tingxieCloudStatus').textContent();
+    assert.match(cloudStatus || '', /Cloud is up to date|Loaded cloud profiles/);
 
     const hubLink = pageB.locator('#learningHubLink');
     assert.equal(await hubLink.innerText(), '🏠 Learning apps');
