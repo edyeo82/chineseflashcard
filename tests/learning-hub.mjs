@@ -89,9 +89,11 @@ try {
   await page.waitForURL(`${BASE_URL}/tingxie/`);
   await page.waitForFunction(() => document.documentElement.dataset.tingxieEventsBound === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLink === 'true');
+  await page.waitForFunction(() => document.documentElement.dataset.tingxieWordChecklist === 'true');
   const hubLink = page.locator('#learningHubLink');
-  assert.equal(await hubLink.innerText(), '← All learning apps');
+  assert.equal(await hubLink.innerText(), '🏠 Learning apps');
   assert.equal(await hubLink.getAttribute('href'), '../');
+  assert.equal(await hubLink.isVisible(), true);
 
   await hubLink.click();
   await page.waitForURL(`${BASE_URL}/`);
