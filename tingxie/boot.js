@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260802-2';
+const TINGXIE_BOOT_VERSION = '20260802-3';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -37,7 +37,7 @@ function installLearningHubLink() {
       margin-bottom: 10px;
       color: var(--primary-dark);
       font-size: .82rem;
-      font-weight: 850;
+      font-weight: 800;
       text-decoration: none;
     }
     #learningHubLink:hover { text-decoration: underline; }
@@ -47,7 +47,7 @@ function installLearningHubLink() {
   const link = document.createElement('a');
   link.id = 'learningHubLink';
   link.href = '../';
-  link.textContent = '← All learning apps';
+  link.textContent = '← Learning apps';
   titleBlock.prepend(link);
   document.documentElement.dataset.tingxieHubLink = 'true';
 }
@@ -82,6 +82,10 @@ function showListSavingLoadFailure() {
 
 function showChecklistLoadFailure() {
   showModuleLoadFailure('The word checklist or Mandarin voice controls could not load. Reload the page.');
+}
+
+function showCloudSyncLoadFailure() {
+  showModuleLoadFailure('Cross-device sync could not load. Local profiles and lists are still available.');
 }
 
 function markAccuracyReady() {
@@ -136,8 +140,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     showChecklistLoadFailure();
   }
 
+  try {
+    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3', 'tingxieCloudSync');
+  } catch {
+    showCloudSyncLoadFailure();
+  }
+
   const testMode = new URLSearchParams(location.search).get('test');
-  if (testMode === 'deterministic' || testMode === 'real-ocr' || testMode === 'word-checklist') return;
+  if (testMode === 'deterministic' || testMode === 'real-ocr' || testMode === 'word-checklist' || testMode === 'cloud-sync') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
 
   try {
