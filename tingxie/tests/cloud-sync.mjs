@@ -167,7 +167,7 @@ async function runCloudSyncTest(browser) {
     assert.match(cloudStatus || '', /Cloud is up to date|Loaded cloud profiles/);
 
     const hubLink = pageB.locator('#learningHubLink');
-    assert.equal(await hubLink.innerText(), '🏠 Learning apps');
+    assert.equal(await hubLink.innerText(), '← Learning apps');
     assert.equal(await hubLink.evaluate(element => getComputedStyle(element).position), 'static');
     assert.equal(await hubLink.evaluate(element => element.parentElement?.matches('.app-header > div')), true);
 
