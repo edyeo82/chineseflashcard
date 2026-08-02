@@ -90,10 +90,12 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.tingxieEventsBound === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLink === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieWordChecklist === 'true');
+  await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLinkPlacement === 'top');
   const hubLink = page.locator('#learningHubLink');
-  assert.equal(await hubLink.innerText(), '🏠 Learning apps');
+  assert.equal(await hubLink.innerText(), '← Learning apps');
   assert.equal(await hubLink.getAttribute('href'), '../');
   assert.equal(await hubLink.isVisible(), true);
+  assert.equal(await hubLink.evaluate(element => getComputedStyle(element).position), 'static');
 
   await hubLink.click();
   await page.waitForURL(`${BASE_URL}/`);
@@ -108,7 +110,8 @@ try {
     title: document.title,
     text: document.body?.innerText?.slice(0, 1200),
     tingxieReady: document.documentElement.dataset.tingxieEventsBound,
-    hubLink: document.documentElement.dataset.tingxieHubLink
+    hubLink: document.documentElement.dataset.tingxieHubLink,
+    hubPlacement: document.documentElement.dataset.tingxieHubLinkPlacement
   })).catch(() => ({}));
   const detail = `${error.stack || error}\nBrowser errors:\n${browserErrors.join('\n')}\nPage state:\n${JSON.stringify(state, null, 2)}`;
   await fs.writeFile(FAILURE_LOG, detail, 'utf8');

@@ -8,7 +8,7 @@ function keepLearningAppsLinkAtTop() {
   const link = document.getElementById('learningHubLink');
   const titleBlock = document.querySelector('.app-header > div');
   if (!link || !titleBlock) return;
-  link.textContent = '🏠 Learning apps';
+  link.textContent = '← Learning apps';
   titleBlock.prepend(link);
   document.documentElement.dataset.tingxieHubLinkPlacement = 'top';
 }
