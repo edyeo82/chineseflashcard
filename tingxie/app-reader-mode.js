@@ -103,6 +103,7 @@ if (!TINGXIE_LEGACY_TEST_MODE) {
       const style = document.createElement('style');
       style.dataset.tingxieReaderMode = 'true';
       style.textContent = `
+        .step[hidden], .panel[hidden] { display: none !important; }
         .stepper:has(.step[hidden]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .reader-extra-controls {
           display: grid;
