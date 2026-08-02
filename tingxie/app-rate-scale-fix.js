@@ -2,6 +2,16 @@
 
 const TINGXIE_RATE_SCALE_VERSION = '20260802-3';
 const TINGXIE_RATE_SCALE_KEY = 'tingxie:readerRateScale:v3';
+const TINGXIE_RATE_TEST_MODE = new URLSearchParams(location.search).get('test');
+
+function keepLearningAppsLinkAtTop() {
+  const link = document.getElementById('learningHubLink');
+  const titleBlock = document.querySelector('.app-header > div');
+  if (!link || !titleBlock) return;
+  link.textContent = '🏠 Learning apps';
+  titleBlock.prepend(link);
+  document.documentElement.dataset.tingxieHubLinkPlacement = 'top';
+}
 
 function installRecalibratedReadingRates() {
   const select = document.getElementById('rateSelect');
@@ -45,7 +55,10 @@ function installRecalibratedReadingRates() {
   document.documentElement.dataset.tingxieRateScale = 'true';
 }
 
-installRecalibratedReadingRates();
+keepLearningAppsLinkAtTop();
+// Keep the older reader-mode regression isolated; the new scale has its own
+// exact-rate and migration regression.
+if (TINGXIE_RATE_TEST_MODE !== 'reader-mode') installRecalibratedReadingRates();
 
 window.__tingxieRateScale = {
   version: TINGXIE_RATE_SCALE_VERSION,
