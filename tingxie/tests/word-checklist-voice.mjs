@@ -36,8 +36,8 @@ async function waitForLiveDeployment() {
         fetch(`${BASE_URL}app-word-checklist-voice.js?checklist-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
       ]);
       const [pageHtml, boot, script] = await Promise.all([pageResponse.text(), bootResponse.text(), scriptResponse.text()]);
-      const ready = pageHtml.includes('boot.js?v=20260802-2')
-        && boot.includes("TINGXIE_BOOT_VERSION = '20260802-2'")
+      const ready = pageHtml.includes('boot.js?v=20260802-3')
+        && boot.includes("TINGXIE_BOOT_VERSION = '20260802-3'")
         && script.includes("TINGXIE_WORD_CHECKLIST_VERSION = '20260802-2'");
       if (pageResponse.ok && bootResponse.ok && scriptResponse.ok && ready) return;
       last = `page=${pageResponse.status}, boot=${bootResponse.status}, script=${scriptResponse.status}, version=${ready}`;
@@ -116,8 +116,9 @@ async function runChecklistFlow(browser) {
     await page.goto(`${BASE_URL}?test=word-checklist&checklist=${Date.now()}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => document.documentElement.dataset.tingxieWordChecklist === 'true');
     await page.waitForFunction(() => document.documentElement.dataset.tingxieProfileMemory === 'true');
+    await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLinkPlacement === 'top');
 
-    assert.equal(await page.locator('#learningHubLink').innerText(), '🏠 Learning apps');
+    assert.equal(await page.locator('#learningHubLink').innerText(), '← Learning apps');
     assert.equal(await page.locator('#learningHubLink').getAttribute('href'), '../');
     assert.equal(await page.locator('#learningHubLink').isVisible(), true);
 
