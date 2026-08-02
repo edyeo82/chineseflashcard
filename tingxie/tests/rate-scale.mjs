@@ -103,7 +103,7 @@ async function runRateTest(browser) {
     assert.equal(await page.locator('#rateSelect').inputValue(), '0.32');
 
     const hubLink = page.locator('#learningHubLink');
-    assert.equal(await hubLink.innerText(), '🏠 Learning apps');
+    assert.equal(await hubLink.innerText(), '← Learning apps');
     assert.equal(await hubLink.evaluate(element => getComputedStyle(element).position), 'static');
     assert.equal(await hubLink.evaluate(element => element.parentElement?.matches('.app-header > div')), true);
 
