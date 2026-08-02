@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260722-2';
+const TINGXIE_BOOT_VERSION = '20260802-2';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -80,6 +80,10 @@ function showListSavingLoadFailure() {
   showModuleLoadFailure('List saving could not load. Reload the page.');
 }
 
+function showChecklistLoadFailure() {
+  showModuleLoadFailure('The word checklist or Mandarin voice controls could not load. Reload the page.');
+}
+
 function markAccuracyReady() {
   document.documentElement.dataset.tingxieOcrAccuracy = 'true';
   const status = document.getElementById('appReadyStatus');
@@ -126,8 +130,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     showProfileMemoryLoadFailure();
   }
 
+  try {
+    await loadAccuracyScript('app-word-checklist-voice.js?v=20260802-2', 'tingxieWordChecklistVoice');
+  } catch {
+    showChecklistLoadFailure();
+  }
+
   const testMode = new URLSearchParams(location.search).get('test');
-  if (testMode === 'deterministic' || testMode === 'real-ocr') return;
+  if (testMode === 'deterministic' || testMode === 'real-ocr' || testMode === 'word-checklist') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
 
   try {
