@@ -89,8 +89,9 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.tingxieWordChecklist === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieCloudSync === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLinkPlacement === 'top');
+  await page.waitForFunction(() => document.documentElement.dataset.tingxieRateScale === 'true');
   const hubLink = page.locator('#learningHubLink');
-  assert.equal(await hubLink.innerText(), '🏠 Learning apps');
+  assert.equal(await hubLink.innerText(), '← Learning apps');
   assert.equal(await hubLink.getAttribute('href'), '../');
   assert.equal(await hubLink.isVisible(), true);
   assert.equal(await hubLink.evaluate(element => getComputedStyle(element).position), 'static');
@@ -110,6 +111,7 @@ try {
     tingxieReady: document.documentElement.dataset.tingxieEventsBound,
     hubLink: document.documentElement.dataset.tingxieHubLink,
     hubPlacement: document.documentElement.dataset.tingxieHubLinkPlacement,
+    rateScale: document.documentElement.dataset.tingxieRateScale,
     checklist: document.documentElement.dataset.tingxieWordChecklist,
     cloud: document.documentElement.dataset.tingxieCloudSync
   })).catch(() => ({}));
