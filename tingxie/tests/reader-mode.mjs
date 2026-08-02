@@ -113,6 +113,7 @@ async function runReaderFlow(browser) {
       { text: 'Fast', value: '0.82' }
     ]);
 
+    await page.locator('.settings-box summary').click();
     await page.locator('#rateSelect').selectOption('0.48');
     await page.locator('#wordList').fill(WORDS.join('\n'));
     await page.locator('#startDictationButton').click();
