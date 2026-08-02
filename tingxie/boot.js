@@ -88,6 +88,10 @@ function showCloudSyncLoadFailure() {
   showModuleLoadFailure('Cross-device sync could not load. Local profiles and lists are still available.');
 }
 
+function showRateScaleLoadFailure() {
+  showModuleLoadFailure('The slower reading-speed scale could not load. Reload the page.');
+}
+
 function markAccuracyReady() {
   document.documentElement.dataset.tingxieOcrAccuracy = 'true';
   const status = document.getElementById('appReadyStatus');
@@ -144,6 +148,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadAccuracyScript('app-cloud-sync.js?v=20260802-3', 'tingxieCloudSync');
   } catch {
     showCloudSyncLoadFailure();
+  }
+
+  try {
+    await loadAccuracyScript('app-rate-scale-fix.js?v=20260802-3', 'tingxieRateScale');
+  } catch {
+    showRateScaleLoadFailure();
   }
 
   const testMode = new URLSearchParams(location.search).get('test');
