@@ -192,6 +192,11 @@ if (!TINGXIE_LEGACY_TEST_MODE) {
     legacyNextItem();
   };
 
+  // app-init registered the original function object directly. Rebind the
+  // button so its final click uses the reader-only finish flow above.
+  $('nextButton').removeEventListener('click', legacyNextItem);
+  $('nextButton').addEventListener('click', nextItem);
+
   migrateAndInstallSlowerRates();
   installReaderUi();
 
