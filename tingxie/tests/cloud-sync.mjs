@@ -119,7 +119,8 @@ async function runCloudSyncTest(browser) {
   try {
     ({ page: pageA, errors: allErrors[0] } = await openCloudPage(contextA, 'A'));
     const errorsA = allErrors[0];
-    await pageA.locator('#tingxieCloudSyncBox summary').click();
+    const syncBoxOpen = await pageA.locator('#tingxieCloudSyncBox').evaluate(element => element.open);
+    if (!syncBoxOpen) await pageA.locator('#tingxieCloudSyncBox summary').click();
     await pageA.locator('#tingxieUsernameInput').fill(USERNAME);
     await pageA.locator('#tingxieUsernameMode').click();
     await pageA.waitForFunction(() => document.querySelector('#tingxieCloudStatus')?.textContent.includes('Created cloud storage'));
