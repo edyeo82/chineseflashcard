@@ -169,13 +169,17 @@ async function openSharedPage(context, sharedUrl, label) {
   return { page, errors };
 }
 
+async function readStorage(page, key) {
+  return page.evaluate(storageKey => localStorage.getItem(storageKey), key);
+}
+
 async function createTeacherShare(browser) {
   const context = await browser.newContext({ viewport: { width: 430, height: 932 } });
   await installBaseStubs(context, TEACHER_MEMORY, TEACHER_SKIPPED, true);
   const { page, errors } = await openNormalPage(context, 'teacher');
   try {
-    const beforeMemory = await page.evaluate(() => localStorage.getItem(PERSONAL_MEMORY_KEY), PERSONAL_MEMORY_KEY);
-    const beforeSkipped = await page.evaluate(() => localStorage.getItem(PERSONAL_SKIPPED_KEY), PERSONAL_SKIPPED_KEY);
+    const beforeMemory = await readStorage(page, PERSONAL_MEMORY_KEY);
+    const beforeSkipped = await readStorage(page, PERSONAL_SKIPPED_KEY);
     assert.equal(await page.locator('#memoryListCount').innerText(), '10/10 saved');
     assert.equal(await page.locator('#shareClassPackButton').isVisible(), true);
 
@@ -186,10 +190,8 @@ async function createTeacherShare(browser) {
     assert.match(shared.url, /#classpack=(?:g|b)\./);
     assert.match(shared.text, /10 听写 lists/);
 
-    const afterMemory = await page.evaluate(() => localStorage.getItem(PERSONAL_MEMORY_KEY), PERSONAL_MEMORY_KEY);
-    const afterSkipped = await page.evaluate(() => localStorage.getItem(PERSONAL_SKIPPED_KEY), PERSONAL_SKIPPED_KEY);
-    assert.equal(afterMemory, beforeMemory);
-    assert.equal(afterSkipped, beforeSkipped);
+    assert.equal(await readStorage(page, PERSONAL_MEMORY_KEY), beforeMemory);
+    assert.equal(await readStorage(page, PERSONAL_SKIPPED_KEY), beforeSkipped);
     assert.deepEqual(errors, []);
     return shared.url;
   } finally {
@@ -202,8 +204,8 @@ async function runStudentA(browser, sharedUrl) {
   await installBaseStubs(context, STUDENT_MEMORY, STUDENT_SKIPPED, false);
   const { page, errors } = await openSharedPage(context, sharedUrl, 'A');
   try {
-    const beforeMemory = await page.evaluate(() => localStorage.getItem(PERSONAL_MEMORY_KEY), PERSONAL_MEMORY_KEY);
-    const beforeSkipped = await page.evaluate(() => localStorage.getItem(PERSONAL_SKIPPED_KEY), PERSONAL_SKIPPED_KEY);
+    const beforeMemory = await readStorage(page, PERSONAL_MEMORY_KEY);
+    const beforeSkipped = await readStorage(page, PERSONAL_SKIPPED_KEY);
     const pack = await page.evaluate(() => window.__tingxieClassPack.pack());
 
     assert.equal(pack.title, PACK_TITLE);
@@ -221,9 +223,8 @@ async function runStudentA(browser, sharedUrl) {
     await firstCheckbox.check();
     assert.equal(await firstCheckbox.isChecked(), true);
 
-    const normalSkippedAfterCheck = await page.evaluate(() => localStorage.getItem(PERSONAL_SKIPPED_KEY), PERSONAL_SKIPPED_KEY);
-    assert.equal(normalSkippedAfterCheck, beforeSkipped, 'Class checkbox must not alter the student normal checklist store.');
-    const classProgress = JSON.parse(await page.evaluate(() => localStorage.getItem(CLASS_PROGRESS_KEY) || '{}', CLASS_PROGRESS_KEY));
+    assert.equal(await readStorage(page, PERSONAL_SKIPPED_KEY), beforeSkipped, 'Class checkbox must not alter the student normal checklist store.');
+    const classProgress = JSON.parse((await readStorage(page, CLASS_PROGRESS_KEY)) || '{}');
     assert.equal(Object.values(classProgress).some(values => values.includes('浪费')), true);
 
     await page.locator('#classPackListSelect').selectOption('list-2');
@@ -240,10 +241,8 @@ async function runStudentA(browser, sharedUrl) {
     await page.locator('#exitDictationButton').click();
     await page.locator('#setupPanel.active').waitFor();
 
-    const afterMemory = await page.evaluate(() => localStorage.getItem(PERSONAL_MEMORY_KEY), PERSONAL_MEMORY_KEY);
-    const afterSkipped = await page.evaluate(() => localStorage.getItem(PERSONAL_SKIPPED_KEY), PERSONAL_SKIPPED_KEY);
-    assert.equal(afterMemory, beforeMemory, 'Opening and reading a class pack must not alter the student saved profile.');
-    assert.equal(afterSkipped, beforeSkipped, 'Opening and reading a class pack must not alter the student normal checkboxes.');
+    assert.equal(await readStorage(page, PERSONAL_MEMORY_KEY), beforeMemory, 'Opening and reading a class pack must not alter the student saved profile.');
+    assert.equal(await readStorage(page, PERSONAL_SKIPPED_KEY), beforeSkipped, 'Opening and reading a class pack must not alter the student normal checkboxes.');
 
     await page.locator('#exitClassPackButton').click();
     await page.waitForFunction(() => !document.documentElement.dataset.tingxieClassPack);
