@@ -104,9 +104,12 @@ async function waitForLiveDeployment() {
 
 async function installBaseStubs(context, memory, skipped = {}) {
   await context.addInitScript(({ memoryState, skippedState }) => {
-    localStorage.setItem('tingxie:profileMemory:v1', JSON.stringify(memoryState));
-    localStorage.setItem('tingxie:skippedWords:v1', JSON.stringify(skippedState));
-    localStorage.setItem('hcl:saveMode', 'guest');
+    if (!localStorage.getItem('__tingxieFamilyImportTestSeeded')) {
+      localStorage.setItem('tingxie:profileMemory:v1', JSON.stringify(memoryState));
+      localStorage.setItem('tingxie:skippedWords:v1', JSON.stringify(skippedState));
+      localStorage.setItem('hcl:saveMode', 'guest');
+      localStorage.setItem('__tingxieFamilyImportTestSeeded', '1');
+    }
 
     class FakeUtterance {
       constructor(text) {
