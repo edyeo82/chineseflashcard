@@ -146,6 +146,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     showProfileMemoryLoadFailure();
   }
 
+  // UI polish loads before cloud sync so it can mark the sync panel open the
+  // moment that panel is inserted, without creating another reload race.
+  try {
+    await loadAccuracyScript('app-ui-polish.js?v=20260809-3', 'tingxieUiPolish');
+  } catch {
+    showModuleLoadFailure('Ting Xie display improvements could not load. Reload the page.');
+  }
+
   try {
     await loadAccuracyScript('app-word-checklist-voice.js?v=20260802-2', 'tingxieWordChecklistVoice');
   } catch {
