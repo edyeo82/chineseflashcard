@@ -173,6 +173,8 @@ function installUi() {
   const box = document.createElement('details');
   box.id = 'tingxieCloudSyncBox';
   box.className = 'tingxie-cloud-sync-box';
+  box.open = true;
+  box.dataset.defaultOpen = 'true';
   box.innerHTML = `
     <summary><span>☁ Sync profiles and lists across devices</span><span id="tingxieCloudModeBadge" class="pill">Guest</span></summary>
     <p class="tingxie-cloud-intro">Use the same Username or Sign-in account as Chinese Flashcards. Guest data remains only in this browser.</p>
