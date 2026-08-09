@@ -89,8 +89,8 @@ async function waitForLiveDeployment() {
         fetch(`${BASE_URL}app-class-pack.js?classpack-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
       ]);
       const [page, boot, pack] = await Promise.all([pageResponse.text(), bootResponse.text(), packResponse.text()]);
-      const ready = page.includes('boot.js?v=20260809-1')
-        && boot.includes("TINGXIE_BOOT_VERSION = '20260809-1'")
+      const ready = page.includes('boot.js?v=20260802-3&cp=20260809-1')
+        && boot.includes("TINGXIE_BOOT_VERSION = '20260802-3'")
         && pack.includes("TINGXIE_CLASS_PACK_VERSION = '20260809-1'");
       if (pageResponse.ok && bootResponse.ok && packResponse.ok && ready) return;
       last = `page=${pageResponse.status}, boot=${bootResponse.status}, pack=${packResponse.status}, ready=${ready}`;
