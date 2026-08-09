@@ -60,10 +60,11 @@ function standardFemaleVoiceScore(voice) {
 
 function standardFemaleVoiceLabel(voice, index) {
   const prefix = index === 0 ? '★ Recommended standard female · ' : '';
+  const lang = standardVoiceLanguage(voice);
   const accent = isSingaporeMandarinVoice(voice) ? 'Singapore Mandarin' : 'Mandarin';
   const local = voice.localService ? 'device' : 'online';
   const female = voiceLooksFemale(voice) ? 'female' : 'female preferred';
-  return `${prefix}${voice.name} · ${accent} · ${female} · ${local}`;
+  return `${prefix}${voice.name} · ${accent} (${lang}) · ${female} · ${local}`;
 }
 
 function populateStandardFemaleMandarinVoices() {
