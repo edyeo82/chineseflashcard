@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260809-1';
+const TINGXIE_BOOT_VERSION = '20260802-3';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
