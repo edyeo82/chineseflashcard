@@ -153,12 +153,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3', 'tingxieCloudSync');
-  } catch {
-    showCloudSyncLoadFailure();
-  }
-
-  try {
     await loadAccuracyScript('app-rate-scale-fix.js?v=20260802-3', 'tingxieRateScale');
   } catch {
     showRateScaleLoadFailure();
@@ -175,6 +169,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadAccuracyScript('app-class-pack-family-import.js?v=20260809-2', 'tingxieClassPackFamilyImport');
   } catch {
     showClassPackFamilyImportLoadFailure();
+  }
+
+  // Cloud sync is deliberately loaded after the complete class-pack stack.
+  // Applying cloud data may reload the page; loading it last prevents that
+  // reload from aborting the Class Pack or family-import scripts mid-startup.
+  try {
+    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3', 'tingxieCloudSync');
+  } catch {
+    showCloudSyncLoadFailure();
   }
 
   const testMode = new URLSearchParams(location.search).get('test');
