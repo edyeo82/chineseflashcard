@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_BOOT_VERSION = '20260802-3';
+const TINGXIE_BOOT_VERSION = '20260809-1';
 
 window.addEventListener('error', event => {
   const toast = document.getElementById('toast');
@@ -92,6 +92,10 @@ function showRateScaleLoadFailure() {
   showModuleLoadFailure('The slower reading-speed scale could not load. Reload the page.');
 }
 
+function showClassPackLoadFailure() {
+  showModuleLoadFailure('Class-pack sharing could not load. Your saved profiles and lists are unchanged.');
+}
+
 function markAccuracyReady() {
   document.documentElement.dataset.tingxieOcrAccuracy = 'true';
   const status = document.getElementById('appReadyStatus');
@@ -156,8 +160,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     showRateScaleLoadFailure();
   }
 
+  try {
+    await loadAccuracyScript('app-class-pack.js?v=20260809-1', 'tingxieClassPack');
+    await window.__tingxieClassPack?.ready;
+  } catch {
+    showClassPackLoadFailure();
+  }
+
   const testMode = new URLSearchParams(location.search).get('test');
-  if (testMode === 'deterministic' || testMode === 'real-ocr' || testMode === 'word-checklist' || testMode === 'cloud-sync') return;
+  if (testMode === 'deterministic' || testMode === 'real-ocr' || testMode === 'word-checklist' || testMode === 'cloud-sync' || testMode === 'class-pack') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
 
   try {
