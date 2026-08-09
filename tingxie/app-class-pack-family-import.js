@@ -50,8 +50,8 @@ function familyWordSignature(words) {
 }
 
 function readFamilyMemory() {
-  const fromApi = window.__tingxieProfileMemory?.snapshot?.();
-  const stored = fromApi || familyParse(localStorage.getItem(TINGXIE_FAMILY_MEMORY_KEY), null);
+  const stored = familyParse(localStorage.getItem(TINGXIE_FAMILY_MEMORY_KEY), null)
+    || window.__tingxieProfileMemory?.snapshot?.();
   if (stored && Array.isArray(stored.profiles) && stored.profiles.length) return familyClone(stored);
   return {
     version: 1,
