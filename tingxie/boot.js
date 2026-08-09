@@ -147,6 +147,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
+    await loadAccuracyScript('app-ui-polish.js?v=20260809-3', 'tingxieUiPolish');
+  } catch {
+    showModuleLoadFailure('Ting Xie display improvements could not load. Reload the page.');
+  }
+
+  try {
     await loadAccuracyScript('app-word-checklist-voice.js?v=20260802-2', 'tingxieWordChecklistVoice');
   } catch {
     showChecklistLoadFailure();
@@ -171,11 +177,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     showClassPackFamilyImportLoadFailure();
   }
 
-  // Cloud sync is deliberately loaded after the complete class-pack stack.
-  // Applying cloud data may reload the page; loading it last prevents that
-  // reload from aborting the Class Pack or family-import scripts mid-startup.
+  // Cloud sync stays last because applying cloud data can reload the page.
+  // Its panel now creates itself expanded, so there is no UI timing race.
   try {
-    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3', 'tingxieCloudSync');
+    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3&ui=20260809-3', 'tingxieCloudSync');
   } catch {
     showCloudSyncLoadFailure();
   }

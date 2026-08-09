@@ -40,8 +40,9 @@
 
       <div class="two-column">
         <div class="card">
-          <label class="field-label" for="profileName">Child / profile</label>
-          <input id="profileName" class="text-input" type="text" maxlength="30" placeholder="e.g. Kate" autocomplete="off">
+          <!-- Kept only for legacy storage compatibility. Child selection now lives in Child Memory. -->
+          <label class="field-label hidden" for="profileName" hidden>Child</label>
+          <input id="profileName" class="text-input hidden" type="text" maxlength="30" placeholder="e.g. Kate" autocomplete="off" hidden>
 
           <label class="upload-zone" for="sourceImage">
             <input id="sourceImage" type="file" accept="image/*" capture="environment">
@@ -231,7 +232,7 @@
 
   <!-- All startup code is same-origin and loads in a deterministic order. The
        large external OCR engine is loaded only after the user taps Read. -->
-  <script src="boot.js?v=20260802-3&cp=20260809-1"></script>
+  <script src="boot.js?v=20260802-3&cp=20260809-1&ui=20260809-3"></script>
   <script src="app-core.js?v=20260719-5"></script>
   <script src="app-ocr.js?v=20260719-5"></script>
   <script src="app-camera.js?v=20260719-5"></script>
