@@ -96,6 +96,10 @@ function showClassPackLoadFailure() {
   showModuleLoadFailure('Class-pack sharing could not load. Your saved profiles and lists are unchanged.');
 }
 
+function showClassPackFamilyImportLoadFailure() {
+  showModuleLoadFailure('Saving a shared class pack into your family profiles could not load. The shared pack is still usable.');
+}
+
 function markAccuracyReady() {
   document.documentElement.dataset.tingxieOcrAccuracy = 'true';
   const status = document.getElementById('appReadyStatus');
@@ -165,6 +169,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     await window.__tingxieClassPack?.ready;
   } catch {
     showClassPackLoadFailure();
+  }
+
+  try {
+    await loadAccuracyScript('app-class-pack-family-import.js?v=20260809-2', 'tingxieClassPackFamilyImport');
+  } catch {
+    showClassPackFamilyImportLoadFailure();
   }
 
   const testMode = new URLSearchParams(location.search).get('test');
