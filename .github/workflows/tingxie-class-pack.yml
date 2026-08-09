@@ -4,18 +4,22 @@ on:
   pull_request:
     paths:
       - 'tingxie/app-class-pack.js'
+      - 'tingxie/app-class-pack-family-import.js'
       - 'tingxie/boot.js'
       - 'tingxie/index.html'
       - 'tingxie/tests/class-pack.mjs'
+      - 'tingxie/tests/class-pack-family-import.mjs'
       - '.github/workflows/tingxie-class-pack.yml'
   push:
     branches:
       - main
     paths:
       - 'tingxie/app-class-pack.js'
+      - 'tingxie/app-class-pack-family-import.js'
       - 'tingxie/boot.js'
       - 'tingxie/index.html'
       - 'tingxie/tests/class-pack.mjs'
+      - 'tingxie/tests/class-pack-family-import.mjs'
       - '.github/workflows/tingxie-class-pack.yml'
   workflow_dispatch:
 
@@ -26,7 +30,7 @@ permissions:
 jobs:
   class-pack:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,11 +47,16 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check tingxie/app-class-pack.js
+          node --check tingxie/app-class-pack-family-import.js
           node --check tingxie/boot.js
           node --check tingxie/tests/class-pack.mjs
+          node --check tingxie/tests/class-pack-family-import.mjs
 
       - name: Test 10-list class pack isolation
         run: node tingxie/tests/class-pack.mjs
+
+      - name: Test saving shared packs into family profiles
+        run: node tingxie/tests/class-pack-family-import.mjs
 
       - name: Upload class-pack evidence
         if: always()
@@ -57,14 +66,17 @@ jobs:
           path: |
             /tmp/tingxie-class-pack-student-a-pass.png
             /tmp/tingxie-class-pack-student-b-pass.png
+            /tmp/tingxie-class-pack-family-import-pass.png
+            /tmp/tingxie-class-pack-five-child-limit-pass.png
             /tmp/tingxie-class-pack-error.txt
+            /tmp/tingxie-class-pack-family-import-error.txt
           if-no-files-found: ignore
 
   verify-live-class-pack:
     if: github.event_name == 'push'
     needs: class-pack
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - name: Mark public class-pack verification pending
         uses: actions/github-script@v7
@@ -76,7 +88,7 @@ jobs:
               sha: context.sha,
               state: 'pending',
               context: 'tingxie-live-class-pack',
-              description: 'Testing deployed multi-list class pack isolation',
+              description: 'Testing deployed class packs and family imports',
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
@@ -91,11 +103,18 @@ jobs:
           npx playwright install --with-deps chromium >/dev/null
 
       - name: Test public class-pack sharing
-        id: live_test
+        id: live_share_test
         continue-on-error: true
         env:
           TINGXIE_BASE_URL: https://edyeo82.github.io/chineseflashcard/tingxie/
         run: node tingxie/tests/class-pack.mjs
+
+      - name: Test public family import
+        id: live_import_test
+        continue-on-error: true
+        env:
+          TINGXIE_BASE_URL: https://edyeo82.github.io/chineseflashcard/tingxie/
+        run: node tingxie/tests/class-pack-family-import.mjs
 
       - name: Upload public class-pack evidence
         if: always()
@@ -105,7 +124,10 @@ jobs:
           path: |
             /tmp/tingxie-class-pack-student-a-pass.png
             /tmp/tingxie-class-pack-student-b-pass.png
+            /tmp/tingxie-class-pack-family-import-pass.png
+            /tmp/tingxie-class-pack-five-child-limit-pass.png
             /tmp/tingxie-class-pack-error.txt
+            /tmp/tingxie-class-pack-family-import-error.txt
           if-no-files-found: ignore
 
       - name: Publish public class-pack result
@@ -113,17 +135,17 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const passed = '${{ steps.live_test.outcome }}' === 'success';
+            const passed = '${{ steps.live_share_test.outcome }}' === 'success' && '${{ steps.live_import_test.outcome }}' === 'success';
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.sha,
               state: passed ? 'success' : 'failure',
               context: 'tingxie-live-class-pack',
-              description: passed ? 'Deployed class pack isolation passed' : 'Deployed class pack isolation failed',
+              description: passed ? 'Deployed class sharing and family import passed' : 'Deployed class sharing or family import failed',
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
       - name: Fail when public class-pack verification failed
-        if: steps.live_test.outcome != 'success'
+        if: steps.live_share_test.outcome != 'success' || steps.live_import_test.outcome != 'success'
         run: exit 1
