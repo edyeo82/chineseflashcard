@@ -35,9 +35,9 @@ async function waitForLiveDeployment() {
         fetch(`${BASE_URL}app-ui-polish.js?ui-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
       ]);
       const [index, boot, ui] = await Promise.all([indexResponse.text(), bootResponse.text(), uiResponse.text()]);
-      const ready = index.includes('ui=20260809-3')
-        && boot.includes("app-ui-polish.js?v=20260809-3")
-        && ui.includes("TINGXIE_UI_POLISH_VERSION = '20260809-3'");
+      const ready = index.includes('ui=20260809-4')
+        && boot.includes("app-ui-polish.js?v=20260809-4")
+        && ui.includes("TINGXIE_UI_POLISH_VERSION = '20260809-4'");
       if (indexResponse.ok && bootResponse.ok && uiResponse.ok && ready) return;
       last = `index=${indexResponse.status}, boot=${bootResponse.status}, ui=${uiResponse.status}, ready=${ready}`;
     } catch (error) {
@@ -85,7 +85,7 @@ async function openUiPage(browser, options = {}) {
   page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
   page.on('requestfailed', request => errors.push(`requestfailed: ${request.url()} :: ${request.failure()?.errorText}`));
   await page.goto(`${BASE_URL}?test=deterministic&ui-polish=${Date.now()}`, { waitUntil: 'networkidle' });
-  await page.waitForFunction(() => window.__tingxieUiPolish?.version === '20260809-3');
+  await page.waitForFunction(() => window.__tingxieUiPolish?.version === '20260809-4');
   await page.waitForFunction(() => document.getElementById('tingxieCloudSyncBox')?.open === true);
   return { context, page, errors };
 }
@@ -101,25 +101,50 @@ async function verifyCommonUi(page) {
 }
 
 async function verifyDesktop(browser) {
-  const { context, page, errors } = await openUiPage(browser, { viewport: { width: 1280, height: 900 } });
+  // 1055px is deliberately close to the screenshot/report size. The overall
+  // page is desktop width, but the left memory card is narrow because it sits
+  // inside the two-column prepare layout.
+  const { context, page, errors } = await openUiPage(browser, { viewport: { width: 1055, height: 900 } });
   try {
     await verifyCommonUi(page);
-    const style = await page.locator('#memoryListSelect').evaluate(element => {
-      const computed = getComputedStyle(element);
+    const result = await page.evaluate(() => {
+      const rect = element => {
+        const value = element.getBoundingClientRect();
+        return { left: value.left, right: value.right, top: value.top, bottom: value.bottom, width: value.width };
+      };
+      const box = document.getElementById('profileMemoryBox');
+      const profileSelect = document.getElementById('memoryProfileSelect');
+      const listSelect = document.getElementById('memoryListSelect');
+      const profileActions = document.getElementById('addProfileButton').closest('.memory-actions');
+      const listActions = document.getElementById('saveMemoryListButton').closest('.memory-actions');
+      const computed = getComputedStyle(listSelect);
       return {
-        appearance: computed.appearance,
-        webkitAppearance: computed.webkitAppearance,
-        minHeight: computed.minHeight,
-        borderRadius: computed.borderRadius,
-        backgroundImage: computed.backgroundImage,
-        width: element.getBoundingClientRect().width
+        style: {
+          appearance: computed.appearance,
+          minHeight: computed.minHeight,
+          borderRadius: computed.borderRadius,
+          backgroundImage: computed.backgroundImage
+        },
+        box: rect(box),
+        profileSelect: rect(profileSelect),
+        listSelect: rect(listSelect),
+        profileActions: rect(profileActions),
+        listActions: rect(listActions),
+        actionRects: [...box.querySelectorAll('.memory-actions button, #memoryListCount')].map(rect)
       };
     });
-    assert.equal(style.appearance, 'none');
-    assert.equal(style.minHeight, '46px');
-    assert.equal(style.borderRadius, '12px');
-    assert.notEqual(style.backgroundImage, 'none');
-    assert.ok(style.width >= 250, `Desktop saved-list selector is unexpectedly narrow: ${style.width}px`);
+
+    assert.equal(result.style.appearance, 'none');
+    assert.equal(result.style.minHeight, '46px');
+    assert.equal(result.style.borderRadius, '12px');
+    assert.notEqual(result.style.backgroundImage, 'none');
+    assert.ok(result.listSelect.width >= 250, `Desktop saved-list selector is unexpectedly narrow: ${result.listSelect.width}px`);
+    assert.ok(result.profileActions.top >= result.profileSelect.bottom + 4, 'Profile buttons must sit below the child selector.');
+    assert.ok(result.listActions.top >= result.listSelect.bottom + 4, 'List buttons must sit below the saved-list selector.');
+    for (const action of result.actionRects) {
+      assert.ok(action.left >= result.box.left - 1, `Action spills left of memory card: ${JSON.stringify(action)}`);
+      assert.ok(action.right <= result.box.right + 1, `Action spills right of memory card: ${JSON.stringify(action)}`);
+    }
     assert.deepEqual(errors, []);
     await page.screenshot({ path: '/tmp/tingxie-ui-polish-desktop-pass.png', fullPage: true });
   } finally {
