@@ -1,34 +1,37 @@
 'use strict';
 
 const TINGXIE_UI_POLISH_VERSION = '20260809-3';
+const MEMORY_HEADING = '👧 Children & 听写 lists';
+const MEMORY_DESCRIPTION = 'Choose a child, then choose a saved 听写 list. Each child keeps separate checklist progress.';
 
 function hideLegacyProfileField() {
   const input = document.getElementById('profileName');
   const label = document.querySelector('label[for="profileName"]');
   if (input) {
-    input.hidden = true;
-    input.setAttribute('aria-hidden', 'true');
+    if (!input.hidden) input.hidden = true;
+    if (input.getAttribute('aria-hidden') !== 'true') input.setAttribute('aria-hidden', 'true');
   }
   if (label) {
-    label.hidden = true;
-    label.setAttribute('aria-hidden', 'true');
+    if (!label.hidden) label.hidden = true;
+    if (label.getAttribute('aria-hidden') !== 'true') label.setAttribute('aria-hidden', 'true');
   }
 }
 
 function clarifyMemoryHeading() {
   const box = document.getElementById('profileMemoryBox');
-  if (!box) return;
+  if (!box) return false;
   const heading = box.querySelector('.profile-memory-heading strong');
   const description = box.querySelector('.profile-memory-heading p');
-  if (heading) heading.textContent = '👧 Children & 听写 lists';
-  if (description) description.textContent = 'Choose a child, then choose a saved 听写 list. Each child keeps separate checklist progress.';
+  if (heading && heading.textContent !== MEMORY_HEADING) heading.textContent = MEMORY_HEADING;
+  if (description && description.textContent !== MEMORY_DESCRIPTION) description.textContent = MEMORY_DESCRIPTION;
+  return true;
 }
 
 function openCloudSyncByDefault() {
   const details = document.getElementById('tingxieCloudSyncBox');
   if (!details) return false;
-  details.open = true;
-  details.dataset.defaultOpen = 'true';
+  if (!details.open) details.open = true;
+  if (details.dataset.defaultOpen !== 'true') details.dataset.defaultOpen = 'true';
   return true;
 }
 
@@ -85,28 +88,26 @@ function installDesktopSelectorStyles() {
   document.head.appendChild(style);
 }
 
+function markReadyWhenPossible() {
+  const memoryReady = clarifyMemoryHeading();
+  const syncReady = openCloudSyncByDefault();
+  if (memoryReady) document.documentElement.dataset.tingxieUiPolish = 'true';
+  return memoryReady && syncReady;
+}
+
 function applyUiPolish() {
   hideLegacyProfileField();
-  clarifyMemoryHeading();
   installDesktopSelectorStyles();
-  openCloudSyncByDefault();
+  markReadyWhenPossible();
 }
 
 applyUiPolish();
 
 const observer = new MutationObserver(() => {
   hideLegacyProfileField();
-  clarifyMemoryHeading();
-  const syncReady = openCloudSyncByDefault();
-  if (syncReady && document.getElementById('profileMemoryBox')) {
-    document.documentElement.dataset.tingxieUiPolish = 'true';
-  }
+  if (markReadyWhenPossible()) observer.disconnect();
 });
 observer.observe(document.body, { childList: true, subtree: true });
-
-if (document.getElementById('profileMemoryBox')) {
-  document.documentElement.dataset.tingxieUiPolish = 'true';
-}
 
 window.__tingxieUiPolish = {
   version: TINGXIE_UI_POLISH_VERSION,
