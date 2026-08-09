@@ -7,8 +7,8 @@ const TINGXIE_STANDARD_VOICE_POLICY_KEY = 'tingxie:standardMandarinVoice:v1';
 // not a portable gender field. These are deliberately conservative name hints
 // for common female Mandarin voices; explicit "female" labels are also used
 // when a browser provides them in the human-readable voice name.
-const TINGXIE_FEMALE_VOICE_HINT = /female|woman|女声|女聲|Ting[- ]?Ting|Xiaoxiao|Huihui|Yaoyao|Mei[- ]?Jia|Xiaoyi|Xiaomeng|Xiaohan|Xiaomo|Xiaoqiu|Xiaorui|Xiaoshuang|Xiaoxuan|Xiaoyan|Xiaoyou|Xiaozhen/i;
-const TINGXIE_MALE_VOICE_HINT = /male|man|男声|男聲|Kangkang|Yunxi|Yunjian|Yunyang|Yunze|Yunfeng|Daming/i;
+const TINGXIE_FEMALE_VOICE_HINT = /\bfemale\b|\bwoman\b|女声|女聲|Ting[- ]?Ting|Xiaoxiao|Huihui|Yaoyao|Mei[- ]?Jia|Xiaoyi|Xiaomeng|Xiaohan|Xiaomo|Xiaoqiu|Xiaorui|Xiaoshuang|Xiaoxuan|Xiaoyan|Xiaoyou|Xiaozhen/i;
+const TINGXIE_MALE_VOICE_HINT = /\bmale\b|\bman\b|男声|男聲|Kangkang|Yunxi|Yunjian|Yunyang|Yunze|Yunfeng|Daming/i;
 
 function standardVoiceLanguage(voice) {
   return String(voice?.lang || '').replace('_', '-');
