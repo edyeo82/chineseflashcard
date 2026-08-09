@@ -68,11 +68,12 @@ try {
   await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' });
   assert.equal(await page.title(), 'KidoTree Learning Hub');
   assert.match(await page.locator('h1').innerText(), /Choose a learning app/);
-  assert.equal(await page.locator('[data-app="flashcards"]').getAttribute('href'), 'flashcards/');
-  assert.equal(await page.locator('[data-app="tingxie"]').getAttribute('href'), 'tingxie/');
-  assert.equal(await page.locator('.app-card').count(), 2);
+  assert.equal(await page.locator('.card.flash').getAttribute('href'), 'flashcards/');
+  assert.equal(await page.locator('.card.ting').getAttribute('href'), 'tingxie/');
+  assert.equal(await page.locator('.card.spell').getAttribute('href'), 'spelling/');
+  assert.equal(await page.locator('.card').count(), 3);
 
-  await page.locator('[data-app="flashcards"]').click();
+  await page.locator('.card.flash').click();
   await page.waitForURL(`${BASE_URL}/flashcards/`);
   assert.equal(await page.locator('h1').innerText(), 'Higher Chinese Flashcards');
 
@@ -85,12 +86,13 @@ try {
   assert.deepEqual(helperStatuses.filter(item => !item.ok), []);
 
   await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' });
-  await page.locator('[data-app="tingxie"]').click();
+  await page.locator('.card.ting').click();
   await page.waitForURL(`${BASE_URL}/tingxie/`);
   await page.waitForFunction(() => document.documentElement.dataset.tingxieEventsBound === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLink === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieWordChecklist === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLinkPlacement === 'top');
+  await page.waitForFunction(() => window.__tingxieClassPack?.version === '20260809-1');
   const hubLink = page.locator('#learningHubLink');
   assert.equal(await hubLink.innerText(), '← Learning apps');
   assert.equal(await hubLink.getAttribute('href'), '../');
@@ -100,6 +102,7 @@ try {
   await hubLink.click();
   await page.waitForURL(`${BASE_URL}/`);
   assert.equal(await page.title(), 'KidoTree Learning Hub');
+  assert.equal(await page.locator('.card').count(), 3);
   await page.screenshot({ path: SCREENSHOT, fullPage: true });
 
   console.log('LEARNING_HUB_LOCAL_PASS');
@@ -111,7 +114,8 @@ try {
     text: document.body?.innerText?.slice(0, 1200),
     tingxieReady: document.documentElement.dataset.tingxieEventsBound,
     hubLink: document.documentElement.dataset.tingxieHubLink,
-    hubPlacement: document.documentElement.dataset.tingxieHubLinkPlacement
+    hubPlacement: document.documentElement.dataset.tingxieHubLinkPlacement,
+    classPack: window.__tingxieClassPack?.version
   })).catch(() => ({}));
   const detail = `${error.stack || error}\nBrowser errors:\n${browserErrors.join('\n')}\nPage state:\n${JSON.stringify(state, null, 2)}`;
   await fs.writeFile(FAILURE_LOG, detail, 'utf8');

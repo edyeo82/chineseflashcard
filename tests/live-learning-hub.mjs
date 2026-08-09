@@ -14,25 +14,29 @@ async function waitForDeployment() {
   while (Date.now() < deadline) {
     try {
       const stamp = Date.now();
-      const [hubResponse, flashcardsResponse, bootResponse, checklistResponse, cloudResponse] = await Promise.all([
+      const [hubResponse, flashcardsResponse, bootResponse, checklistResponse, cloudResponse, classPackResponse] = await Promise.all([
         fetch(`${LIVE_URL}?hub-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
         fetch(`${LIVE_URL}flashcards/?hub-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
         fetch(`${LIVE_URL}tingxie/boot.js?hub-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
         fetch(`${LIVE_URL}tingxie/app-word-checklist-voice.js?hub-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
-        fetch(`${LIVE_URL}tingxie/app-cloud-sync.js?hub-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
+        fetch(`${LIVE_URL}tingxie/app-cloud-sync.js?hub-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
+        fetch(`${LIVE_URL}tingxie/app-class-pack.js?hub-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
       ]);
-      const [hubText, flashcardsText, bootText, checklistText, cloudText] = await Promise.all([
-        hubResponse.text(), flashcardsResponse.text(), bootResponse.text(), checklistResponse.text(), cloudResponse.text()
+      const [hubText, flashcardsText, bootText, checklistText, cloudText, classPackText] = await Promise.all([
+        hubResponse.text(), flashcardsResponse.text(), bootResponse.text(), checklistResponse.text(), cloudResponse.text(), classPackResponse.text()
       ]);
-      const ready = hubResponse.ok && flashcardsResponse.ok && bootResponse.ok && checklistResponse.ok && cloudResponse.ok
+      const ready = hubResponse.ok && flashcardsResponse.ok && bootResponse.ok && checklistResponse.ok && cloudResponse.ok && classPackResponse.ok
         && hubText.includes('KidoTree Learning Hub')
-        && hubText.includes('data-app="flashcards"')
+        && hubText.includes('href="flashcards/"')
+        && hubText.includes('href="tingxie/"')
+        && hubText.includes('href="spelling/"')
         && flashcardsText.includes('Higher Chinese Flashcards')
         && bootText.includes("TINGXIE_BOOT_VERSION = '20260802-3'")
         && checklistText.includes("TINGXIE_WORD_CHECKLIST_VERSION = '20260802-2'")
-        && cloudText.includes("TINGXIE_CLOUD_SYNC_VERSION = '20260802-3'");
+        && cloudText.includes("TINGXIE_CLOUD_SYNC_VERSION = '20260802-3'")
+        && classPackText.includes("TINGXIE_CLASS_PACK_VERSION = '20260809-1'");
       if (ready) return;
-      last = `hub=${hubResponse.status}, flashcards=${flashcardsResponse.status}, boot=${bootResponse.status}, checklist=${checklistResponse.status}, cloud=${cloudResponse.status}, ready=${ready}`;
+      last = `hub=${hubResponse.status}, flashcards=${flashcardsResponse.status}, boot=${bootResponse.status}, checklist=${checklistResponse.status}, cloud=${cloudResponse.status}, classPack=${classPackResponse.status}, ready=${ready}`;
     } catch (error) {
       last = error.message;
     }
@@ -72,9 +76,12 @@ try {
 
   await page.goto(`${LIVE_URL}?hub-live=${Date.now()}`, { waitUntil: 'domcontentloaded' });
   assert.equal(await page.title(), 'KidoTree Learning Hub');
-  assert.equal(await page.locator('.app-card').count(), 2);
+  assert.equal(await page.locator('.card').count(), 3);
+  assert.equal(await page.locator('.card.flash').getAttribute('href'), 'flashcards/');
+  assert.equal(await page.locator('.card.ting').getAttribute('href'), 'tingxie/');
+  assert.equal(await page.locator('.card.spell').getAttribute('href'), 'spelling/');
 
-  await page.locator('[data-app="flashcards"]').click();
+  await page.locator('.card.flash').click();
   await page.waitForURL(/\/flashcards\/$/);
   assert.equal(await page.locator('h1').innerText(), 'Higher Chinese Flashcards');
   const helperResponse = await page.evaluate(async () => {
@@ -90,6 +97,7 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.tingxieCloudSync === 'true');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieHubLinkPlacement === 'top');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieRateScale === 'true');
+  await page.waitForFunction(() => window.__tingxieClassPack?.version === '20260809-1');
   const hubLink = page.locator('#learningHubLink');
   assert.equal(await hubLink.innerText(), '← Learning apps');
   assert.equal(await hubLink.getAttribute('href'), '../');
@@ -99,6 +107,7 @@ try {
   await hubLink.click();
   await page.waitForURL(new RegExp(`${LIVE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\?.*)?$`));
   assert.equal(await page.title(), 'KidoTree Learning Hub');
+  assert.equal(await page.locator('.card').count(), 3);
 
   await page.screenshot({ path: SCREENSHOT, fullPage: true });
   console.log('LEARNING_HUB_LIVE_PASS');
@@ -113,7 +122,8 @@ try {
     hubPlacement: document.documentElement.dataset.tingxieHubLinkPlacement,
     rateScale: document.documentElement.dataset.tingxieRateScale,
     checklist: document.documentElement.dataset.tingxieWordChecklist,
-    cloud: document.documentElement.dataset.tingxieCloudSync
+    cloud: document.documentElement.dataset.tingxieCloudSync,
+    classPack: window.__tingxieClassPack?.version
   })).catch(() => ({}));
   const detail = `${error.stack || error}\nBrowser errors:\n${browserErrors.join('\n')}\nPage state:\n${JSON.stringify(state, null, 2)}`;
   await fs.writeFile(FAILURE_LOG, detail, 'utf8');
