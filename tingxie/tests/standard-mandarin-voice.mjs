@@ -35,8 +35,9 @@ async function waitForLiveDeployment() {
         fetch(`${BASE_URL}app-standard-mandarin-voice.js?standard-voice-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
       ]);
       const [pageHtml, boot, voice] = await Promise.all([pageResponse.text(), bootResponse.text(), voiceResponse.text()]);
-      const ready = pageHtml.includes('voice=20260809-1')
-        && boot.includes("TINGXIE_BOOT_VERSION = '20260809-1'")
+      const ready = pageHtml.includes('boot.js?v=20260802-3')
+        && pageHtml.includes('voice=20260809-1')
+        && boot.includes("TINGXIE_BOOT_VERSION = '20260802-3'")
         && boot.includes("app-standard-mandarin-voice.js?v=20260809-1")
         && voice.includes("TINGXIE_STANDARD_VOICE_VERSION = '20260809-1'");
       if (pageResponse.ok && bootResponse.ok && voiceResponse.ok && ready) return;
@@ -134,8 +135,6 @@ async function runStandardVoiceFlow(browser) {
     assert.equal(spoken.lang, 'zh-SG');
     assert.equal(spoken.text, '浪费');
 
-    // If no female Singapore voice is exposed, female Mandarin remains more
-    // important than choosing a male voice solely for its Singapore locale.
     const fallback = await page.evaluate(() => {
       window.__testVoices = [
         { name: 'Kangkang', lang: 'zh-SG', localService: true },
