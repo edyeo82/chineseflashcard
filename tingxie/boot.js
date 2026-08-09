@@ -154,6 +154,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   try {
     await loadAccuracyScript('app-word-checklist-voice.js?v=20260802-2', 'tingxieWordChecklistVoice');
+    await loadAccuracyScript('app-standard-mandarin-voice.js?v=20260809-1', 'tingxieStandardMandarinVoice');
   } catch {
     showChecklistLoadFailure();
   }
