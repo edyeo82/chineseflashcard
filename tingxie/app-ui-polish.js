@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_UI_POLISH_VERSION = '20260809-3';
+const TINGXIE_UI_POLISH_VERSION = '20260809-4';
 const MEMORY_HEADING = '👧 Children & 听写 lists';
 const MEMORY_DESCRIPTION = 'Choose a child, then choose a saved 听写 list. Each child keeps separate checklist progress.';
 
@@ -41,9 +41,19 @@ function installDesktopSelectorStyles() {
   style.dataset.tingxieDesktopSelectors = 'true';
   style.textContent = `
     @media (min-width: 721px) {
+      /* The memory card sits inside the left column, so its usable width is
+         much narrower than the whole desktop viewport. Keep each selector on
+         a full row and place its actions directly underneath. */
       #profileMemoryBox .memory-control-row {
-        grid-template-columns: minmax(300px, 1fr) auto;
-        column-gap: 14px;
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 8px;
+        align-items: stretch;
+      }
+
+      #profileMemoryBox .memory-control-row > label {
+        display: block;
+        width: 100%;
+        min-width: 0;
       }
 
       #profileMemoryBox #memoryProfileSelect,
@@ -80,9 +90,32 @@ function installDesktopSelectorStyles() {
       }
 
       #profileMemoryBox .memory-actions {
-        min-height: 46px;
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
         align-items: center;
+        gap: 7px;
       }
+
+      #profileMemoryBox .memory-actions button {
+        min-height: 38px;
+        max-width: 100%;
+      }
+
+      /* Keep the saved-list count on the left and all list actions together
+         on the right. app-memory-save-button prepends Save in the DOM, so
+         explicit ordering keeps the visual row predictable. */
+      #profileMemoryBox #memoryListCount {
+        order: 1;
+        margin-right: auto;
+      }
+      #profileMemoryBox #saveMemoryListButton { order: 2; }
+      #profileMemoryBox #newMemoryListButton { order: 3; }
+      #profileMemoryBox #renameListButton { order: 4; }
+      #profileMemoryBox #deleteListButton { order: 5; }
     }
   `;
   document.head.appendChild(style);
