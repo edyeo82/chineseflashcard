@@ -147,7 +147,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    await loadAccuracyScript('app-ui-polish.js?v=20260809-3', 'tingxieUiPolish');
+    await loadAccuracyScript('app-ui-polish.js?v=20260809-4', 'tingxieUiPolish');
   } catch {
     showModuleLoadFailure('Ting Xie display improvements could not load. Reload the page.');
   }
@@ -180,7 +180,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Cloud sync stays last because applying cloud data can reload the page.
   // Its panel now creates itself expanded, so there is no UI timing race.
   try {
-    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3&ui=20260809-3', 'tingxieCloudSync');
+    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3&ui=20260809-4', 'tingxieCloudSync');
   } catch {
     showCloudSyncLoadFailure();
   }
