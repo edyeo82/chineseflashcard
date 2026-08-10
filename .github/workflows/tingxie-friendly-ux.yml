@@ -8,7 +8,7 @@ on:
       - 'tingxie/app-family-sync-simple.js'
       - 'tingxie/boot.js'
       - 'tingxie/index.html'
-      - 'tingxie/tests/friendly-ux.mjs'
+      - 'tingxie/tests/friendly-ux-v2.mjs'
       - '.github/workflows/tingxie-friendly-ux.yml'
   push:
     branches:
@@ -19,7 +19,7 @@ on:
       - 'tingxie/app-family-sync-simple.js'
       - 'tingxie/boot.js'
       - 'tingxie/index.html'
-      - 'tingxie/tests/friendly-ux.mjs'
+      - 'tingxie/tests/friendly-ux-v2.mjs'
       - '.github/workflows/tingxie-friendly-ux.yml'
   workflow_dispatch:
 
@@ -50,10 +50,10 @@ jobs:
           node --check tingxie/app-friendly-final-polish.js
           node --check tingxie/app-family-sync-simple.js
           node --check tingxie/boot.js
-          node --check tingxie/tests/friendly-ux.mjs
+          node --check tingxie/tests/friendly-ux-v2.mjs
 
       - name: Test simplified parent and child flow
-        run: node tingxie/tests/friendly-ux.mjs
+        run: node tingxie/tests/friendly-ux-v2.mjs
 
       - name: Upload friendly UX evidence
         if: always()
@@ -61,10 +61,9 @@ jobs:
         with:
           name: tingxie-friendly-ux-evidence
           path: |
-            /tmp/tingxie-friendly-ux-pass.png
-            /tmp/tingxie-friendly-ux-device2-pass.png
-            /tmp/tingxie-friendly-ux-failure.png
-            /tmp/tingxie-friendly-ux-error.txt
+            /tmp/tingxie-friendly-v2-first-pass.png
+            /tmp/tingxie-friendly-v2-second-pass.png
+            /tmp/tingxie-friendly-ux-v2-error.txt
           if-no-files-found: ignore
 
   verify-live-friendly-ux:
@@ -102,7 +101,7 @@ jobs:
         continue-on-error: true
         env:
           TINGXIE_BASE_URL: https://edyeo82.github.io/chineseflashcard/tingxie/
-        run: node tingxie/tests/friendly-ux.mjs
+        run: node tingxie/tests/friendly-ux-v2.mjs
 
       - name: Upload public friendly UX evidence
         if: always()
@@ -110,10 +109,9 @@ jobs:
         with:
           name: tingxie-live-friendly-ux-evidence
           path: |
-            /tmp/tingxie-friendly-ux-pass.png
-            /tmp/tingxie-friendly-ux-device2-pass.png
-            /tmp/tingxie-friendly-ux-failure.png
-            /tmp/tingxie-friendly-ux-error.txt
+            /tmp/tingxie-friendly-v2-first-pass.png
+            /tmp/tingxie-friendly-v2-second-pass.png
+            /tmp/tingxie-friendly-ux-v2-error.txt
           if-no-files-found: ignore
 
       - name: Publish public friendly UX result
