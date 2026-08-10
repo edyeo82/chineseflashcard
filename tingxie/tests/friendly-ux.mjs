@@ -31,18 +31,23 @@ async function waitForLiveDeployment() {
   while (Date.now() < deadline) {
     try {
       const stamp = Date.now();
-      const [bootResponse, uxResponse, syncResponse] = await Promise.all([
+      const [bootResponse, uxResponse, finalResponse, syncResponse] = await Promise.all([
         fetch(`${BASE_URL}boot.js?friendly-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
         fetch(`${BASE_URL}app-friendly-ux.js?friendly-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
+        fetch(`${BASE_URL}app-friendly-final-polish.js?friendly-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } }),
         fetch(`${BASE_URL}app-family-sync-simple.js?friendly-deployment=${stamp}`, { headers: { 'cache-control': 'no-cache' } })
       ]);
-      const [boot, ux, sync] = await Promise.all([bootResponse.text(), uxResponse.text(), syncResponse.text()]);
+      const [boot, ux, finalPolish, sync] = await Promise.all([
+        bootResponse.text(), uxResponse.text(), finalResponse.text(), syncResponse.text()
+      ]);
       const ready = boot.includes("app-friendly-ux.js?v=20260810-1")
+        && boot.includes("app-friendly-final-polish.js?v=20260810-1")
         && boot.includes("app-family-sync-simple.js?v=20260810-1")
         && ux.includes("TINGXIE_FRIENDLY_UX_VERSION = '20260810-1'")
+        && finalPolish.includes("TINGXIE_FRIENDLY_FINAL_VERSION = '20260810-1'")
         && sync.includes("TINGXIE_SIMPLE_SYNC_VERSION = '20260810-1'");
-      if (bootResponse.ok && uxResponse.ok && syncResponse.ok && ready) return;
-      last = `boot=${bootResponse.status}, ux=${uxResponse.status}, sync=${syncResponse.status}, ready=${ready}`;
+      if (bootResponse.ok && uxResponse.ok && finalResponse.ok && syncResponse.ok && ready) return;
+      last = `boot=${bootResponse.status}, ux=${uxResponse.status}, final=${finalResponse.status}, sync=${syncResponse.status}, ready=${ready}`;
     } catch (error) {
       last = error.message;
     }
@@ -123,6 +128,7 @@ async function openPage(browser, options = {}) {
   page.on('requestfailed', request => errors.push(`requestfailed: ${request.url()} :: ${request.failure()?.errorText}`));
   await page.goto(`${BASE_URL}?test=friendly-ux&friendly=${Date.now()}`, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => window.__tingxieFriendlyUx?.active === true);
+  await page.waitForFunction(() => window.__tingxieFriendlyFinalPolish?.version === '20260810-1');
   await page.waitForFunction(() => window.__tingxieSimpleFamilySync?.version === '20260810-1');
   await page.waitForFunction(() => document.documentElement.dataset.tingxieProfileMemory === 'true');
   return { context, page, errors };
@@ -159,7 +165,16 @@ async function runPrimaryFamilyFlow(browser) {
     assert.equal(await page.locator('label[for="sourceImage"]').isVisible(), false);
     assert.equal(await page.locator('#scanSourceButton').isVisible(), false);
     assert.equal(await page.locator('#appReadyStatus').isVisible(), false);
+    assert.equal(await page.locator('.in-browser-camera-button:visible').count(), 0);
+    assert.equal(await page.getByText('Take photo in browser', { exact: false }).filter({ visible: true }).count().catch(() => 0), 0);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector('script[data-tingxie-ocr-accuracy]'))), false);
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.tingxieBrowserOcr), 'retired');
+
+    // The navigation back to the app hub stays a quiet normal link at the top.
+    const hubLink = page.locator('#learningHubLink');
+    assert.equal(await hubLink.innerText(), '← Learning apps');
+    assert.equal(await hubLink.evaluate(element => getComputedStyle(element).position), 'static');
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.tingxieHubLinkPlacement), 'top');
 
     // Sync is intentionally one simple username flow: no accounts and no manual cloud buttons.
     const sync = page.locator('#tingxieCloudSyncBox');
@@ -167,7 +182,7 @@ async function runPrimaryFamilyFlow(browser) {
     const syncText = await sync.innerText();
     assert.match(syncText, /Family sync/i);
     assert.match(syncText, /Family username/i);
-    assert.match(syncText, /sync automatically/i);
+    assert.match(syncText, /save automatically|sync automatically/i);
     assert.doesNotMatch(syncText, /Google|Sign in|Create account|Copy this browser|Reload from cloud/i);
     assert.equal(await page.locator('#tingxieGoogleSignIn').count(), 0);
     assert.equal(await page.locator('#tingxieCopyLocalToCloud').count(), 0);
@@ -239,6 +254,7 @@ async function runPrimaryFamilyFlow(browser) {
     await page.screenshot({ path: '/tmp/tingxie-friendly-ux-failure.png', fullPage: true }).catch(() => {});
     const state = await page.evaluate(() => ({
       friendly: window.__tingxieFriendlyUx,
+      finalPolish: window.__tingxieFriendlyFinalPolish,
       simpleSync: {
         mode: window.__tingxieSimpleFamilySync?.mode?.(),
         username: window.__tingxieSimpleFamilySync?.username?.()
@@ -250,7 +266,9 @@ async function runPrimaryFamilyFlow(browser) {
       nativePrompts: window.__nativePromptCalls,
       nativeConfirms: window.__nativeConfirmCalls,
       shareCalls: window.__shareCalls,
-      ocrScript: Boolean(document.querySelector('script[data-tingxie-ocr-accuracy]'))
+      ocrScript: Boolean(document.querySelector('script[data-tingxie-ocr-accuracy]')),
+      browserCameraVisible: Array.from(document.querySelectorAll('.in-browser-camera-button')).some(element => getComputedStyle(element).display !== 'none'),
+      hubPosition: document.querySelector('#learningHubLink') ? getComputedStyle(document.querySelector('#learningHubLink')).position : null
     })).catch(() => ({}));
     throw new Error(`${error.stack || error}\nBrowser errors:\n${errors.join('\n')}\nPage state:\n${JSON.stringify(state, null, 2)}\nRemote:\n${JSON.stringify([...remote.entries()], null, 2)}`);
   } finally {
@@ -270,6 +288,8 @@ async function runSecondDeviceFlow(browser) {
     assert.equal(await learnedRow.locator('input[type="checkbox"]').isChecked(), true);
     assert.match(await learnedRow.innerText(), /Learned/);
     assert.equal(await page.locator('#tingxieCloudModeBadge').innerText(), `Family: ${FAMILY}`);
+    assert.equal(await page.locator('.in-browser-camera-button:visible').count(), 0);
+    assert.equal(await page.locator('#learningHubLink').evaluate(element => getComputedStyle(element).position), 'static');
     assert.deepEqual(errors, []);
     await page.screenshot({ path: '/tmp/tingxie-friendly-ux-device2-pass.png', fullPage: true });
   } finally {
