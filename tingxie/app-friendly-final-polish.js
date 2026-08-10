@@ -68,6 +68,18 @@ function putLearningAppsBackInHeader() {
   }
 }
 
+function applyLearnedRowVisuals() {
+  document.querySelectorAll('.word-checklist-row').forEach(row => {
+    if (row.classList.contains('learned')) {
+      row.style.setProperty('opacity', '.58', 'important');
+      row.style.setProperty('background', '#eef0ee', 'important');
+    } else {
+      row.style.removeProperty('opacity');
+      row.style.removeProperty('background');
+    }
+  });
+}
+
 function addRetiredClass(element) {
   if (element && !element.classList.contains('friendly-retired')) {
     element.classList.add('friendly-retired');
@@ -84,7 +96,6 @@ function retireLegacyBrowserCamera() {
 
   document.querySelectorAll('.in-browser-camera-button').forEach(addRetiredClass);
 
-  // Also cover any older cached camera helper that did not use the final class.
   document.querySelectorAll('button, a, label').forEach(element => {
     const text = String(element.textContent || '').replace(/\s+/g, ' ').trim();
     if (/^(?:📷\s*)?Take photo in browser$/i.test(text) || /^Read words from photo$/i.test(text)) {
@@ -104,18 +115,29 @@ function retireLegacyBrowserCamera() {
 function applyFriendlyFinalPolish() {
   putLearningAppsBackInHeader();
   retireLegacyBrowserCamera();
+  applyLearnedRowVisuals();
   document.documentElement.dataset.tingxieFriendlyFinalPolish = 'true';
 }
 
 applyFriendlyFinalPolish();
 
-// Camera/UI helpers are synchronous today, but keep a short observer so a
-// cached older helper cannot re-add a retired browser-camera control afterward.
+document.addEventListener('change', event => {
+  if (event.target?.matches?.('.word-checklist-row input[type="checkbox"]')) {
+    queueMicrotask(applyLearnedRowVisuals);
+  }
+}, true);
+
 const friendlyFinalObserver = new MutationObserver(() => {
   putLearningAppsBackInHeader();
   retireLegacyBrowserCamera();
+  applyLearnedRowVisuals();
 });
-friendlyFinalObserver.observe(document.body, { childList: true, subtree: true });
+friendlyFinalObserver.observe(document.body, {
+  childList: true,
+  subtree: true,
+  attributes: true,
+  attributeFilter: ['class']
+});
 setTimeout(() => friendlyFinalObserver.disconnect(), 3000);
 
 window.__tingxieFriendlyFinalPolish = {
