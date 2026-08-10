@@ -7,9 +7,13 @@ function putLearningAppsBackInHeader() {
   const header = document.querySelector('.app-header > div');
   if (!link || !header) return;
 
-  link.textContent = '← Learning apps';
-  link.setAttribute('aria-label', 'Return to all learning apps');
-  header.prepend(link);
+  if (link.textContent !== '← Learning apps') link.textContent = '← Learning apps';
+  if (link.getAttribute('aria-label') !== 'Return to all learning apps') {
+    link.setAttribute('aria-label', 'Return to all learning apps');
+  }
+  if (link.parentElement !== header || header.firstElementChild !== link) {
+    header.prepend(link);
+  }
 
   if (!document.querySelector('style[data-tingxie-friendly-hub-link]')) {
     const style = document.createElement('style');
@@ -46,28 +50,32 @@ function putLearningAppsBackInHeader() {
     document.head.appendChild(style);
   }
 
-  document.documentElement.dataset.tingxieHubLinkPlacement = 'top';
+  if (document.documentElement.dataset.tingxieHubLinkPlacement !== 'top') {
+    document.documentElement.dataset.tingxieHubLinkPlacement = 'top';
+  }
+}
+
+function addRetiredClass(element) {
+  if (element && !element.classList.contains('friendly-retired')) {
+    element.classList.add('friendly-retired');
+  }
 }
 
 function retireLegacyBrowserCamera() {
-  const sourceInput = document.getElementById('sourceImage');
-  const sourceLabel = document.querySelector('label[for="sourceImage"]');
-  sourceInput?.classList.add('friendly-retired');
-  sourceLabel?.classList.add('friendly-retired');
+  addRetiredClass(document.getElementById('sourceImage'));
+  addRetiredClass(document.querySelector('label[for="sourceImage"]'));
 
   ['sourcePreview', 'scanSourceButton', 'appReadyStatus', 'sourceProgress', 'cameraDialog'].forEach(id => {
-    document.getElementById(id)?.classList.add('friendly-retired');
+    addRetiredClass(document.getElementById(id));
   });
 
-  document.querySelectorAll('.in-browser-camera-button').forEach(button => {
-    button.classList.add('friendly-retired');
-  });
+  document.querySelectorAll('.in-browser-camera-button').forEach(addRetiredClass);
 
   // Also cover any older cached camera helper that did not use the final class.
   document.querySelectorAll('button, a, label').forEach(element => {
     const text = String(element.textContent || '').replace(/\s+/g, ' ').trim();
     if (/^(?:📷\s*)?Take photo in browser$/i.test(text) || /^Read words from photo$/i.test(text)) {
-      element.classList.add('friendly-retired');
+      addRetiredClass(element);
     }
   });
 
@@ -75,7 +83,9 @@ function retireLegacyBrowserCamera() {
     try { closeInBrowserCamera(); } catch { /* already closed */ }
   }
 
-  document.documentElement.dataset.tingxieBrowserOcr = 'retired';
+  if (document.documentElement.dataset.tingxieBrowserOcr !== 'retired') {
+    document.documentElement.dataset.tingxieBrowserOcr = 'retired';
+  }
 }
 
 function applyFriendlyFinalPolish() {
