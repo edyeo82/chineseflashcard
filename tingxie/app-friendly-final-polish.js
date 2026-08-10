@@ -128,12 +128,15 @@ function applyFriendlyFinalPolish() {
 
 applyFriendlyFinalPolish();
 
+// Bubble after each row's own checkbox handler so the learned visual state is
+// final before the user's click completes. The short delayed pass covers any
+// older helper that replaces a row immediately afterward.
 document.addEventListener('change', event => {
   if (event.target?.matches?.('.word-checklist-row input[type="checkbox"]')) {
-    setTimeout(applyLearnedRowVisuals, 0);
+    applyLearnedRowVisuals();
     setTimeout(applyLearnedRowVisuals, 60);
   }
-}, true);
+});
 
 const friendlyFinalObserver = new MutationObserver(() => {
   putLearningAppsBackInHeader();
