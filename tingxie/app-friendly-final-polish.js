@@ -1,6 +1,6 @@
 'use strict';
 
-const TINGXIE_FRIENDLY_FINAL_VERSION = '20260810-2';
+const TINGXIE_FRIENDLY_FINAL_VERSION = '20260810-1';
 
 function putLearningAppsBackInHeader() {
   const link = document.getElementById('learningHubLink');
