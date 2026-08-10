@@ -93,9 +93,12 @@ async function waitForLiveDeployment() {
 
 async function installCommonStubs(context, { memory = null, packStore = {} } = {}) {
   await context.addInitScript(({ memoryState, initialPackStore }) => {
-    if (memoryState) localStorage.setItem('tingxie:profileMemory:v1', JSON.stringify(memoryState));
-    localStorage.setItem('hcl:saveMode', 'guest');
-    localStorage.removeItem('hcl:simpleUsername');
+    if (memoryState && !localStorage.getItem('__tingxieShortParentSeeded')) {
+      localStorage.setItem('tingxie:profileMemory:v1', JSON.stringify(memoryState));
+      localStorage.setItem('hcl:saveMode', 'guest');
+      localStorage.removeItem('hcl:simpleUsername');
+      localStorage.setItem('__tingxieShortParentSeeded', '1');
+    }
 
     window.__shortPackStore = JSON.parse(JSON.stringify(initialPackStore || {}));
     window.__tingxieClassPackStoreTestAdapter = {
