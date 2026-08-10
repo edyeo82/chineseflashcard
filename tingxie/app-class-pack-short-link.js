@@ -6,9 +6,7 @@ const SHORT_PACK_PUBLIC_USER = 'tingxiepacks';
 const SHORT_PACK_ID_LENGTH = 12;
 const SHORT_PACK_ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz';
 const shortLinkTestMode = new URLSearchParams(location.search).get('test');
-const shortLinksEnabled = !shortLinkTestMode
-  || shortLinkTestMode === 'friendly-ux'
-  || Boolean(window.__tingxieClassPackStoreTestAdapter);
+const shortLinksEnabled = !shortLinkTestMode || Boolean(window.__tingxieClassPackStoreTestAdapter);
 
 const SHORT_PACK_FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAhQzUiDlZazIKi3180eT2BTXdaD5h81sI',
@@ -21,7 +19,6 @@ const SHORT_PACK_FIREBASE_CONFIG = {
 };
 
 const legacyLongClassPackUrlBuilder = buildClassPackShareUrl;
-const legacyClassPackExit = exitClassPack;
 let shortPackAdapter = null;
 
 function shortPackPath(id) {
