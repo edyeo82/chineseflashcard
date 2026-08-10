@@ -46,6 +46,19 @@ function putLearningAppsBackInHeader() {
         text-decoration: underline !important;
         transform: none !important;
       }
+      .word-checklist-row.learned,
+      .word-checklist-row.skipped.learned {
+        opacity: .58 !important;
+        background: #eef0ee !important;
+      }
+      .word-checklist-row.learned .word-checklist-text,
+      .word-checklist-row.learned .word-checklist-number,
+      .word-checklist-row.learned .word-checklist-status {
+        color: var(--muted) !important;
+      }
+      .word-checklist-row.learned .word-checklist-text {
+        text-decoration: none !important;
+      }
     `;
     document.head.appendChild(style);
   }
