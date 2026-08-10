@@ -46,8 +46,7 @@ function putLearningAppsBackInHeader() {
         text-decoration: underline !important;
         transform: none !important;
       }
-      .word-checklist-row.learned,
-      .word-checklist-row.skipped.learned {
+      .word-checklist-row.learned {
         opacity: .58 !important;
         background: #eef0ee !important;
       }
@@ -70,7 +69,13 @@ function putLearningAppsBackInHeader() {
 
 function applyLearnedRowVisuals() {
   document.querySelectorAll('.word-checklist-row').forEach(row => {
-    if (row.classList.contains('learned')) {
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    const learned = Boolean(checkbox?.checked);
+    row.classList.toggle('learned', learned);
+    row.classList.toggle('skipped', learned);
+    const status = row.querySelector('.word-checklist-status');
+    if (status) status.textContent = learned ? 'Learned ✓' : 'Practise';
+    if (learned) {
       row.style.setProperty('opacity', '.58', 'important');
       row.style.setProperty('background', '#eef0ee', 'important');
     } else {
@@ -125,13 +130,11 @@ applyFriendlyFinalPolish();
 
 document.addEventListener('change', event => {
   if (event.target?.matches?.('.word-checklist-row input[type="checkbox"]')) {
-    queueMicrotask(applyLearnedRowVisuals);
+    setTimeout(applyLearnedRowVisuals, 0);
+    setTimeout(applyLearnedRowVisuals, 60);
   }
 }, true);
 
-// Only watch for newly inserted controls/rows. Do not watch class changes: the
-// older camera and checklist modules also toggle classes, which can otherwise
-// create observer feedback loops.
 const friendlyFinalObserver = new MutationObserver(() => {
   putLearningAppsBackInHeader();
   retireLegacyBrowserCamera();
