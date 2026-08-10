@@ -7,6 +7,10 @@ function parentCleanName(value) {
   return String(value || '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30);
 }
 
+function parentSetText(element, value) {
+  if (element && element.textContent !== value) element.textContent = value;
+}
+
 function familyImportMemorySnapshot() {
   return window.__tingxieClassPackFamilyImport?.memory?.() || { profiles: [], activeProfileId: null };
 }
@@ -48,17 +52,24 @@ function directChildImportUi() {
   const name = parentCleanName(nameInput.value);
   const packCount = window.__tingxieClassPack?.pack?.()?.lists?.length || 0;
   if (name) {
-    capacity.textContent = `A new profile for ${name} will be created and the shared lists will be saved there.`;
+    parentSetText(capacity, `A new profile for ${name} will be created and the shared lists will be saved there.`);
   } else {
     const memory = familyImportMemorySnapshot();
     const profile = memory.profiles?.find(item => item.id === select.value) || memory.profiles?.[0];
     const count = profile?.lists?.length || 0;
     const room = Math.max(0, 10 - count);
-    capacity.textContent = profile
+    parentSetText(capacity, profile
       ? `${profile.name} has space for ${room} more list${room === 1 ? '' : 's'}. Existing lists are never deleted.`
-      : `Enter a child’s name to create a profile for these ${packCount} shared lists.`;
+      : `Enter a child’s name to create a profile for these ${packCount} shared lists.`);
   }
   return true;
+}
+
+function openSavedChildWithoutSharedPack() {
+  const url = new URL(location.href);
+  url.hash = '';
+  url.searchParams.delete('pack');
+  location.href = url.toString();
 }
 
 function installDirectChildImport() {
@@ -73,6 +84,14 @@ function installDirectChildImport() {
   confirm.dataset.parentDirectImport = 'true';
   oldConfirm.replaceWith(confirm);
 
+  const oldOpen = document.getElementById('classPackOpenChildButton');
+  if (oldOpen && oldOpen.dataset.parentShortExit !== 'true') {
+    const open = oldOpen.cloneNode(true);
+    open.dataset.parentShortExit = 'true';
+    oldOpen.replaceWith(open);
+    open.addEventListener('click', openSavedChildWithoutSharedPack);
+  }
+
   const refresh = () => setTimeout(directChildImportUi, 0);
   select.addEventListener('change', refresh);
   nameInput.addEventListener('input', directChildImportUi);
@@ -83,23 +102,23 @@ function installDirectChildImport() {
     const enteredName = parentCleanName(nameInput.value);
     const profileId = select.value;
     if (!enteredName && !profileId) {
-      status.textContent = 'Enter the child’s name, or choose an existing child.';
+      parentSetText(status, 'Enter the child’s name, or choose an existing child.');
       nameInput.focus();
       return;
     }
 
     confirm.disabled = true;
-    status.textContent = enteredName ? `Creating ${enteredName} and saving the shared lists…` : 'Saving shared lists…';
+    parentSetText(status, enteredName ? `Creating ${enteredName} and saving the shared lists…` : 'Saving shared lists…');
     try {
       const result = await window.__tingxieClassPackFamilyImport.importCurrent(enteredName
         ? { newChild: true, name: enteredName }
         : { newChild: false, profileId });
-      status.textContent = importSummary(result);
-      toggle.textContent = `✓ Saved for ${result.profileName}`;
+      parentSetText(status, importSummary(result));
+      parentSetText(toggle, `✓ Saved for ${result.profileName}`);
       const open = document.getElementById('classPackOpenChildButton');
       if (open) {
         open.hidden = false;
-        open.textContent = `Open ${result.profileName}’s saved lists →`;
+        parentSetText(open, `Open ${result.profileName}’s saved lists →`);
       }
       nameInput.value = '';
       if (typeof renderFamilyTargetChoices === 'function') renderFamilyTargetChoices();
@@ -107,7 +126,7 @@ function installDirectChildImport() {
       if (result.noRoom) showToast(`${result.noRoom} shared list${result.noRoom === 1 ? '' : 's'} could not fit because this child already has 10 lists.`);
       else showToast(`Saved class pack for ${result.profileName}.`);
     } catch (error) {
-      status.textContent = error?.message || String(error);
+      parentSetText(status, error?.message || String(error));
       showToast(status.textContent);
     } finally {
       confirm.disabled = false;
@@ -128,7 +147,7 @@ function installDirectChildImport() {
 function setProgressSaveStatus(message, saved = false) {
   const status = document.getElementById('learnedProgressSaveStatus');
   const button = document.getElementById('saveLearnedProgressButton');
-  if (status) status.textContent = message;
+  parentSetText(status, message);
   if (button) button.dataset.saved = saved ? 'true' : 'false';
 }
 
