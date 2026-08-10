@@ -183,6 +183,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   try {
     await loadAccuracyScript('app-friendly-ux.js?v=20260810-1', 'tingxieFriendlyUx');
+    if (friendlyProduction) {
+      await loadAccuracyScript('app-friendly-final-polish.js?v=20260810-1', 'tingxieFriendlyFinalPolish');
+    }
   } catch {
     showModuleLoadFailure('The simplified Ting Xie screen could not load. Reload the page.');
   }
