@@ -171,6 +171,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   try {
     await loadAccuracyScript('app-class-pack.js?v=20260809-1', 'tingxieClassPack');
     await window.__tingxieClassPack?.ready;
+    await loadAccuracyScript('app-class-pack-short-link.js?v=20260810-3', 'tingxieClassPackShortLink');
+    await window.__tingxieClassPackShortLink?.ready;
   } catch {
     showClassPackLoadFailure();
   }
@@ -201,6 +203,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   } catch {
     showCloudSyncLoadFailure();
+  }
+
+  if (friendlyProduction) {
+    try {
+      await loadAccuracyScript('app-parent-flow-polish.js?v=20260810-3', 'tingxieParentFlowPolish');
+    } catch {
+      showModuleLoadFailure('Parent-friendly child and progress controls could not load. Reload the page.');
+    }
   }
 
   // Browser OCR is intentionally retired from the normal app. Parents can
