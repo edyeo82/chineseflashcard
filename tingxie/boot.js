@@ -85,7 +85,7 @@ function showChecklistLoadFailure() {
 }
 
 function showCloudSyncLoadFailure() {
-  showModuleLoadFailure('Cross-device sync could not load. Local profiles and lists are still available.');
+  showModuleLoadFailure('Family sync could not load. Local profiles and lists are still available.');
 }
 
 function showRateScaleLoadFailure() {
@@ -119,6 +119,9 @@ function loadAccuracyScript(src, dataName) {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  const testMode = new URLSearchParams(location.search).get('test');
+  const friendlyProduction = !testMode || testMode === 'friendly-ux';
+
   installLearningHubLink();
 
   try {
@@ -178,15 +181,36 @@ window.addEventListener('DOMContentLoaded', async () => {
     showClassPackFamilyImportLoadFailure();
   }
 
-  // Cloud sync stays last because applying cloud data can reload the page.
-  // Its panel now creates itself expanded, so there is no UI timing race.
   try {
-    await loadAccuracyScript('app-cloud-sync.js?v=20260802-3&ui=20260809-4', 'tingxieCloudSync');
+    await loadAccuracyScript('app-friendly-ux.js?v=20260810-1', 'tingxieFriendlyUx');
+    if (friendlyProduction) {
+      await loadAccuracyScript('app-friendly-final-polish.js?v=20260810-1&fix=5', 'tingxieFriendlyFinalPolish');
+    }
+  } catch {
+    showModuleLoadFailure('The simplified Ting Xie screen could not load. Reload the page.');
+  }
+
+  // Production uses one simple Family username with automatic sync. The older
+  // cloud panel is retained only in its existing regression-test modes so the
+  // underlying storage engine continues to have independent coverage.
+  try {
+    if (friendlyProduction) {
+      await loadAccuracyScript('app-family-sync-simple.js?v=20260810-1', 'tingxieCloudSync');
+    } else {
+      await loadAccuracyScript('app-cloud-sync.js?v=20260802-3&ui=20260809-4', 'tingxieCloudSync');
+    }
   } catch {
     showCloudSyncLoadFailure();
   }
 
-  const testMode = new URLSearchParams(location.search).get('test');
+  // Browser OCR is intentionally retired from the normal app. Parents can
+  // type a list or use the ChatGPT paste workflow instead. Keep the legacy OCR
+  // modules available only to their dedicated regression tests.
+  if (friendlyProduction) {
+    document.documentElement.dataset.tingxieBrowserOcr = 'retired';
+    return;
+  }
+
   if (testMode === 'deterministic' || testMode === 'real-ocr' || testMode === 'word-checklist' || testMode === 'cloud-sync' || testMode === 'class-pack') return;
   if (document.querySelector('script[data-tingxie-ocr-accuracy]')) return;
 
