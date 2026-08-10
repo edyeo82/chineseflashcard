@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'tingxie/app-friendly-ux.js'
+      - 'tingxie/app-friendly-final-polish.js'
       - 'tingxie/app-family-sync-simple.js'
       - 'tingxie/boot.js'
       - 'tingxie/index.html'
@@ -14,6 +15,7 @@ on:
       - main
     paths:
       - 'tingxie/app-friendly-ux.js'
+      - 'tingxie/app-friendly-final-polish.js'
       - 'tingxie/app-family-sync-simple.js'
       - 'tingxie/boot.js'
       - 'tingxie/index.html'
@@ -45,6 +47,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check tingxie/app-friendly-ux.js
+          node --check tingxie/app-friendly-final-polish.js
           node --check tingxie/app-family-sync-simple.js
           node --check tingxie/boot.js
           node --check tingxie/tests/friendly-ux.mjs
