@@ -103,7 +103,9 @@ function retireLegacyBrowserCamera() {
     }
   });
 
-  if (typeof closeInBrowserCamera === 'function') {
+  const dialog = document.getElementById('cameraDialog');
+  const cameraIsOpen = document.body.classList.contains('camera-open') || (dialog && !dialog.classList.contains('hidden'));
+  if (cameraIsOpen && typeof closeInBrowserCamera === 'function') {
     try { closeInBrowserCamera(); } catch { /* already closed */ }
   }
 
@@ -127,17 +129,15 @@ document.addEventListener('change', event => {
   }
 }, true);
 
+// Only watch for newly inserted controls/rows. Do not watch class changes: the
+// older camera and checklist modules also toggle classes, which can otherwise
+// create observer feedback loops.
 const friendlyFinalObserver = new MutationObserver(() => {
   putLearningAppsBackInHeader();
   retireLegacyBrowserCamera();
   applyLearnedRowVisuals();
 });
-friendlyFinalObserver.observe(document.body, {
-  childList: true,
-  subtree: true,
-  attributes: true,
-  attributeFilter: ['class']
-});
+friendlyFinalObserver.observe(document.body, { childList: true, subtree: true });
 setTimeout(() => friendlyFinalObserver.disconnect(), 3000);
 
 window.__tingxieFriendlyFinalPolish = {
