@@ -1,0 +1,132 @@
+name: Ting Xie short link parent flow
+
+on:
+  pull_request:
+    paths:
+      - 'tingxie/app-class-pack-short-link.js'
+      - 'tingxie/app-parent-flow-polish.js'
+      - 'tingxie/boot.js'
+      - 'tingxie/index.html'
+      - 'tingxie/tests/short-link-parent-flow.mjs'
+      - '.github/workflows/tingxie-short-link-parent-flow.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tingxie/app-class-pack-short-link.js'
+      - 'tingxie/app-parent-flow-polish.js'
+      - 'tingxie/boot.js'
+      - 'tingxie/index.html'
+      - 'tingxie/tests/short-link-parent-flow.mjs'
+      - '.github/workflows/tingxie-short-link-parent-flow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  short-link-parent-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install browser
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check tingxie/app-class-pack-short-link.js
+          node --check tingxie/app-parent-flow-polish.js
+          node --check tingxie/boot.js
+          node --check tingxie/tests/short-link-parent-flow.mjs
+
+      - name: Test short sharing and parent flow
+        run: node tingxie/tests/short-link-parent-flow.mjs
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-short-link-parent-flow-evidence
+          path: |
+            /tmp/tingxie-short-link-parent-flow-pass.png
+            /tmp/tingxie-short-link-parent-flow-failure.png
+            /tmp/tingxie-short-link-parent-flow-error.txt
+          if-no-files-found: ignore
+
+  verify-live-short-link-parent-flow:
+    if: github.event_name == 'push'
+    needs: short-link-parent-flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Mark public verification pending
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'pending',
+              context: 'tingxie-live-short-link-parent-flow',
+              description: 'Testing short class links and parent progress flow',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install live-test browser
+        run: |
+          npm install --no-save --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+
+      - name: Test public short sharing and parent flow
+        id: live_test
+        continue-on-error: true
+        env:
+          TINGXIE_BASE_URL: https://edyeo82.github.io/chineseflashcard/tingxie/
+        run: node tingxie/tests/short-link-parent-flow.mjs
+
+      - name: Upload public evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tingxie-live-short-link-parent-flow-evidence
+          path: |
+            /tmp/tingxie-short-link-parent-flow-pass.png
+            /tmp/tingxie-short-link-parent-flow-failure.png
+            /tmp/tingxie-short-link-parent-flow-error.txt
+          if-no-files-found: ignore
+
+      - name: Publish public result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = '${{ steps.live_test.outcome }}' === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: passed ? 'success' : 'failure',
+              context: 'tingxie-live-short-link-parent-flow',
+              description: passed ? 'Deployed short sharing parent flow passed' : 'Deployed short sharing parent flow failed',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - name: Fail when public verification failed
+        if: steps.live_test.outcome != 'success'
+        run: exit 1
