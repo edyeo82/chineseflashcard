@@ -74,7 +74,8 @@ function applyLearnedRowVisuals() {
     row.classList.toggle('learned', learned);
     row.classList.toggle('skipped', learned);
     const status = row.querySelector('.word-checklist-status');
-    if (status) status.textContent = learned ? 'Learned ✓' : 'Practise';
+    const nextStatus = learned ? 'Learned ✓' : 'Practise';
+    if (status && status.textContent !== nextStatus) status.textContent = nextStatus;
     if (learned) {
       row.style.setProperty('opacity', '.58', 'important');
       row.style.setProperty('background', '#eef0ee', 'important');
@@ -128,9 +129,6 @@ function applyFriendlyFinalPolish() {
 
 applyFriendlyFinalPolish();
 
-// Bubble after each row's own checkbox handler so the learned visual state is
-// final before the user's click completes. The short delayed pass covers any
-// older helper that replaces a row immediately afterward.
 document.addEventListener('change', event => {
   if (event.target?.matches?.('.word-checklist-row input[type="checkbox"]')) {
     applyLearnedRowVisuals();
@@ -138,6 +136,8 @@ document.addEventListener('change', event => {
   }
 });
 
+// Watch only for newly inserted controls and rows. Every update inside the
+// callback is idempotent, so the observer cannot trigger itself indefinitely.
 const friendlyFinalObserver = new MutationObserver(() => {
   putLearningAppsBackInHeader();
   retireLegacyBrowserCamera();
