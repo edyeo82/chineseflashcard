@@ -1,0 +1,19 @@
+{
+  "name": "Ting Xie V2 AI OCR",
+  "short_name": "Ting Xie V2",
+  "description": "Chinese spelling practice, assisted marking, and mistake retests.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8ec",
+  "theme_color": "#fff8ec",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "/chineseflashcard/tingxie-v2/"
+}

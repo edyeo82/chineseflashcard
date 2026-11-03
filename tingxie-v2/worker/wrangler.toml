@@ -1,0 +1,6 @@
+name = "tingxie-v2-ai-ocr"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://edyeo82.github.io"
