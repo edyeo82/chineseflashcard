@@ -468,16 +468,16 @@ function polishFriendlyCopy() {
   const wordList = document.getElementById('wordList');
   const help = wordList?.nextElementSibling;
   if (help?.classList.contains('help-text')) {
-    help.textContent = 'One item per line. Type here or paste a list from ChatGPT.';
+    help.textContent = 'One item per line. Scan a photo with AI above, type, or paste a list here.';
   }
 
   const pasteBox = document.querySelector('.ai-paste-box');
   const pasteTitle = pasteBox?.querySelector('.ai-paste-copy strong');
   const pasteCopy = pasteBox?.querySelector('.ai-paste-copy p');
   const pasteButton = document.getElementById('pasteListButton');
-  if (pasteTitle) pasteTitle.textContent = 'Add a list from a photo';
-  if (pasteCopy) pasteCopy.textContent = 'Open the photo in ChatGPT, ask it to extract the 听写 words, copy the list, then paste it here.';
-  if (pasteButton) pasteButton.textContent = '📋 Paste list from ChatGPT';
+  if (pasteTitle) pasteTitle.textContent = 'Paste words manually (optional)';
+  if (pasteCopy) pasteCopy.textContent = 'Or use AI Read photo above. You can paste or edit words here anytime.';
+  if (pasteButton) pasteButton.textContent = '📋 Paste words';
 
   const saveButton = document.getElementById('saveMemoryListButton');
   if (saveButton) saveButton.textContent = '💾 Save list';
