@@ -1,37 +1,45 @@
-# 听写小老师 V2 — AI OCR
+# 听写小老师 V2 — AI OCR without user setup
 
-Separate release of the original Ting Xie at ../tingxie/. V1 source files have not been edited.
+V2 is separate from the [original Ting Xie](../tingxie/README.md). All V1 files, saved data, and cloud-sync paths remain untouched.
 
-Live: https://edyeo82.github.io/chineseflashcard/tingxie-v2/
+**V2:** https://edyeo82.github.io/chineseflashcard/tingxie-v2/
 
-## Use free Gemini AI OCR
+## Learner experience
 
-1. Create a Gemini API key using a free-tier project at https://aistudio.google.com/api-keys.
-2. Open the V2 app. Expand AI photo reader, paste your personal key and Save.
-3. Take a photo of the Chinese 听写 list and tap "Read photo with AI".
-4. Review/edit the detected words, then use the original reader/practice features.
-5. Optional: "mark handwritten answers using AI" for preliminary marking; correct doubtful rows yourself.
+1. Take or select a photo of the Chinese 听写 words.
+2. Tap **✨ Read photo with AI**.
+3. Review/edit the Chinese words and start practice.
+4. Optionally photograph handwritten answers for preliminary marking, then confirm them manually.
 
-The key is stored in browser sessionStorage by default (not in GitHub). Checking "Remember credentials on this device" saves it in browser localStorage. Use only on trusted devices. Do NOT add the key to public GitHub source.
+**No login, API key, account creation, payment details, or AI settings are required for learners.**
 
-AI errors and hallucinations are possible: review spelling, omitted words and row order. Crop out student names. Photos are transmitted to Google on scanning; Google may use data on the free tier to improve products. Free quotas can change.
+## Backend: Firebase AI Logic + Gemini Developer API
 
-## Secure family backend (optional)
+The V2 frontend uses the existing `chinese-flashcards-63883` Firebase project through Firebase AI Logic's managed proxy, not a public Gemini API key. The model is `gemini-3.5-flash-lite` (subject to model free-tier quotas). The Google Firebase API configuration is public by design, but no private Gemini API key is checked into GitHub.
 
-The worker/ directory contains a Cloudflare Worker that securely keeps the shared Gemini key server-side.
+**Important: The frontend has been committed, but the Firebase project has not been activated for AI. Until a project administrator completes the one-time setup below, scanning shows a clear owner-activation error and manual word entry continues to work.**
 
-1. Deploy worker/worker.js with Cloudflare Workers (free tier may suffice).
-2. Set Worker secrets GEMINI_API_KEY and FAMILY_ACCESS_CODE (use a long random code).
-3. Set ALLOWED_ORIGIN in worker/wrangler.toml to the GitHub Pages origin, or to your custom domain if hosting there.
-4. On the app's Advanced AI settings, enter your Worker HTTPS /ocr URL and FAMILY_ACCESS_CODE. The Gemini API key then stays out of the browser.
-5. For public deployment, add rate limiting/Turnstile; family code and CORS alone are not complete abuse protection.
+### One-time site-owner setup — not done by users
 
-## Isolation from V1
+1. Open [Firebase Console](https://console.firebase.google.com/) and select project **chinese-flashcards-63883**.
+2. Under **AI Services → AI Logic**, select **Get started** and enable the **Gemini Developer API**. If you need its free tier, the Firebase project should remain on the no-cost Spark plan. If on Blaze, verify applicable charges before proceeding.
+3. In Google Cloud, create a **reCAPTCHA Enterprise web site key**, with `edyeo82.github.io` as an allowed domain. Choose score-based/invisible protection, not a checkbox challenge.
+4. In Firebase **Security → App Check**, register the **existing Firebase Web app** (app ID in `ai-config.js`) with that reCAPTCHA Enterprise site key. Ensure **Firebase AI Logic** enforcement is enabled (required since November 2, 2026).
+5. Set the **public** `appCheckSiteKey` in `tingxie-v2/ai-config.js` to your reCAPTCHA Enterprise site key, commit and redeploy GitHub Pages. This site key is safe to publish; **never commit any Gemini/Google Cloud secret key**.
+6. Confirm one real mobile scan. Monitor AI usage/quota in Firebase/Google Cloud.
 
-* All V2 files are in tingxie-v2/.
-* Browser localStorage and sessionStorage are namespaced with tingxie-v2: for V2 classic scripts.
-* Cloud-sync uses a different Firestore child path TingXieV2 (not TingXie).
-* V2 does not unregister V1 service workers or load browser Tesseract OCR.
-* V1 saved lists do not automatically migrate to V2.
+No Cloudflare Worker or family access code is used in the default V2 scanning path. The `worker/` example is leftover from the earlier proof-of-concept and is not deployed or called by this version.
 
-OCR end-to-end verification requires the user's API key, which was not provided. No test AI calls have been made.
+### Why App Check?
+
+Google began requiring Firebase App Check enforcement for Firebase AI Logic on **November 2, 2026**. Without the production Web attestation provider, the Firebase proxy rejects AI requests. App Check limits unauthorized use of the shared quota, though it does not replace monitoring or per-IP/user request throttling.
+
+## Privacy and limits
+
+* Only photos actively scanned are sent through Firebase AI Logic to Google's models; no image is saved by the V2 app.
+* The old Tesseract OCR engine is not loaded for normal V2 use.
+* The Gemini Developer API free tier has limits, can become unavailable, and may use free-tier data for model improvement: crop names and identifiable details out of photos.
+* AI can hallucinate or misread Chinese characters, especially handwriting. Parents should always review extracted words and corrected marks.
+* Separate V2 browser storage keys and Firestore paths prevent V2 from overwriting V1 saved data.
+
+**References:** https://firebase.google.com/docs/ai-logic/get-started ; https://firebase.google.com/docs/ai-logic/app-check ; https://firebase.google.com/docs/ai-logic/models
