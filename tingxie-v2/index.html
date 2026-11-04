@@ -10,7 +10,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="stylesheet" href="styles.css?v=20260719-5">
-  <style>.v2-marker{display:inline-block;font:700 12px system-ui;color:#075985;background:#e0f2fe;padding:5px 9px;border-radius:99px;vertical-align:middle}.ai2box{margin:12px 0;padding:14px;background:#eff9ff;border:1px solid #bae6fd;border-radius:12px}.ai2box summary{cursor:pointer;font-weight:700}.ai2box label{display:block;margin:9px 0 5px;font-weight:650;font-size:.85rem}.ai2box input,.ai2box select{box-sizing:border-box;width:100%;font-size:16px;padding:10px;border:1px solid #94a3b8;border-radius:7px}.ai2box input[type=checkbox]{width:auto}.ai2box p{font-size:.82rem;line-height:1.5;margin:8px 0}.ai2box button{padding:10px 13px;border-radius:7px;background:#075985;border:0;color:white;font-weight:700;margin-right:8px}.ai2mark{display:block;width:100%;padding:12px;margin-top:10px;border:1px solid #0891b2;border-radius:9px;background:#ecfeff;font-weight:700}.ai2box .checkrow{font-weight:400}</style>
+  <style>.v2-marker{display:inline-block;font:700 12px system-ui;color:#075985;background:#e0f2fe;padding:5px 9px;border-radius:99px;vertical-align:middle}.ai2box{margin:12px 0;padding:14px;background:#eff9ff;border:1px solid #bae6fd;border-radius:12px}.ai2box summary{cursor:pointer;font-weight:700}.ai2box label{display:block;margin:9px 0 5px;font-weight:650;font-size:.85rem}.ai2box p{font-size:.82rem;line-height:1.5;margin:8px 0}.ai2mark{display:block;width:100%;padding:12px;margin-top:10px;border:1px solid #0891b2;border-radius:9px;background:#ecfeff;font-weight:700}.ai2box .checkrow{font-weight:400}</style>
 </head>
 <body>
   <header class="app-header">
@@ -49,7 +49,7 @@
             <input id="sourceImage" type="file" accept="image/*" capture="environment">
             <span class="upload-icon">📷</span>
             <strong>Take or choose the 听写 list photo</strong>
-            <small>When scanned, the photo is sent to Google Gemini. Crop out children’s names.</small>
+            <small>AI reads your photo using the app’s shared service. No setup needed.</small>
           </label>
           <img id="sourcePreview" class="image-preview hidden" alt="Preview of the spelling list">
 
@@ -235,6 +235,7 @@
   <script src="storage-v2.js?v=1"></script>
   <script src="boot.js?v=20260802-3&cp=20260809-1&ui=20260809-4&voice=20260809-1&ux=20260810-1&share=20260810-3"></script>
   <script src="app-core.js?v=20260719-5"></script>
+  <script src="ai-config.js?v=3"></script>
   <script src="app-ocr.js?v=20260719-5"></script>
   <script src="app-camera.js?v=20260719-5"></script>
   <script src="app-dictation.js?v=20260719-5"></script>
@@ -246,7 +247,7 @@
       const status = document.getElementById('appReadyStatus');
       if (!status) return;
       if (document.documentElement.dataset.tingxieEventsBound === 'true') {
-        status.textContent = 'V2 ready. Take a photo to scan with AI.';
+        status.textContent = 'V2 ready. Take a photo and tap Read with AI.';
         status.dataset.ready = 'true';
       } else {
         status.textContent = 'App failed to start. Reload the page or report the App error shown below.';
